@@ -7,8 +7,8 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PlayerController.h"
+#include "AncientWorldPlayerController.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "HeadMountedDisplayFunctionLibrary.h"
 #include "Materials/Material.h"
 #include "Engine/World.h"
 
@@ -97,6 +97,8 @@ void AAncientWorldCharacter::SetupPlayerInputComponent(class UInputComponent* Pl
 
 void AAncientWorldCharacter::MoveForward(float axis)
 {
+	AAncientWorldPlayerController* myController = Cast<AAncientWorldPlayerController>(GetController());
+	if ((axis > 0.1f || axis < -0.1f) && myController) myController->CancelMoveToLocation();
 	FVector dir = CameraComp->GetForwardVector();
 	dir.Z = 0;
 	AddMovementInput(dir.GetSafeNormal()*axis);
@@ -104,6 +106,9 @@ void AAncientWorldCharacter::MoveForward(float axis)
 
 void AAncientWorldCharacter::MoveRight(float axis)
 {
+	AAncientWorldPlayerController* myController = Cast<AAncientWorldPlayerController>(GetController());
+	if ((axis > 0.1f || axis < -0.1f) && myController) myController->CancelMoveToLocation();
+
 	AddMovementInput(CameraComp->GetRightVector() * axis);
 
 }

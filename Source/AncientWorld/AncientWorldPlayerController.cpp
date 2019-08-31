@@ -6,11 +6,21 @@
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "AncientWorldCharacter.h"
 #include "Engine/World.h"
+#include "Public/APInteractItemBase.h"
+
+#include "NavigationSystem.h"
+#include "Navigation/PathFollowingComponent.h"
+#include "AIController.h"
 
 AAncientWorldPlayerController::AAncientWorldPlayerController()
 {
 	bShowMouseCursor = true;
 	DefaultMouseCursor = EMouseCursor::Crosshairs;
+}
+
+void AAncientWorldPlayerController::BeginPlay()
+{
+	Super::BeginPlay();
 }
 
 void AAncientWorldPlayerController::PlayerTick(float DeltaTime)
@@ -25,48 +35,137 @@ void AAncientWorldPlayerController::SetupInputComponent()
 	// set up gameplay key bindings
 	Super::SetupInputComponent();
 
+	InputComponent->BindAction("Interact", IE_Pressed, this, &AAncientWorldPlayerController::OnMouseClick);
 }
 
 
-void AAncientWorldPlayerController::MoveToMouseCursor()
+void AAncientWorldPlayerController::OnMouseClick()
 {
-	if (UHeadMountedDisplayFunctionLibrary::IsHeadMountedDisplayEnabled())
-	{
-		if (AAncientWorldCharacter* MyPawn = Cast<AAncientWorldCharacter>(GetPawn()))
-		{
-			if (MyPawn->GetCursorToWorld())
-			{
-				UAIBlueprintHelperLibrary::SimpleMoveToLocation(this, MyPawn->GetCursorToWorld()->GetComponentLocation());
-			}
-		}
-	}
-	else
-	{
-		// Trace to see what is under the mouse cursor
-		FHitResult Hit;
-		GetHitResultUnderCursor(ECC_Visibility, false, Hit);
+	// Trace to see what is under the mouse cursor
+	FHitResult Hit;
+	GetHitResultUnderCursor(ECC_Visibility, false, Hit);
 
-		if (Hit.bBlockingHit)
-		{
-			// We hit something, move there
-			SetNewMoveDestination(Hit.ImpactPoint);
-		}
+	if (Hit.bBlockingHit)
+	{
+		SetNewMoveDestination(Hit);
 	}
+
 }
 
-void AAncientWorldPlayerController::SetNewMoveDestination(const FVector DestLocation)
+void AAncientWorldPlayerController::SetNewMoveDestination(const FHitResult& outHit)
 {
 	APawn* const MyPawn = GetPawn();
 	if (MyPawn)
 	{
-		float const Distance = FVector::Dist(DestLocation, MyPawn->GetActorLocation());
+		AAPInteractItemBase* interactBase = Cast<AAPInteractItemBase>(outHit.Actor);
+		if (interactBase) {
+			float const Distance = FVector::Dist(outHit.ImpactPoint, MyPawn->GetActorLocation());
 
-		// We need to issue move command only if far enough in order for walk animation to play correctly
-		if ((Distance > 120.0f))
-		{
-			UAIBlueprintHelperLibrary::SimpleMoveToLocation(this, DestLocation);
+			if ((Distance > 120.0f))
+			{
+				if (!interactBase->GetCanPawnInteract())
+					MoveToLocation(this, outHit.ImpactPoint);
+				//UAIBlueprintHelperLibrary::SimpleMoveToLocation(this, outHit.ImpactPoint);
+			}
+
+			if (interactBase->GetCanPawnInteract()) {
+				interactBase->Interact();
+			}
 		}
+
+
 	}
 }
 
 
+UPathFollowingComponent* AAncientWorldPlayerController::InitNavigationControl(AController& Controller)
+{
+
+	AAIController* AsAIController = Cast<AAIController>(&Controller);
+	UPathFollowingComponent* PathFollowingComp = nullptr;
+
+	if (AsAIController)
+	{
+		PathFollowingComp = AsAIController->GetPathFollowingComponent();
+	}
+	else
+	{
+		PathFollowingComp = Controller.FindComponentByClass<UPathFollowingComponent>();
+		if (PathFollowingComp == nullptr)
+		{
+			PathFollowingComp = NewObject<UPathFollowingComponent>(&Controller);
+			PathFollowingComp->RegisterComponentWithWorld(Controller.GetWorld());
+			PathFollowingComp->Initialize();
+		}
+	}
+
+	return PathFollowingComp;
+
+}
+
+void AAncientWorldPlayerController::MoveToLocation(AController* Controller, const FVector& GoalLocation)
+{
+	UNavigationSystemV1* NavSys = Controller ? FNavigationSystem::GetCurrent<UNavigationSystemV1>(Controller->GetWorld()) : nullptr;
+	if (NavSys == nullptr || Controller == nullptr || Controller->GetPawn() == nullptr)
+	{
+		UE_LOG(LogNavigation, Warning, TEXT("UNavigationSystemV1::SimpleMoveToActor called for NavSys:%s Controller:%s controlling Pawn:%s (if any of these is None then there's your problem"),
+			*GetNameSafe(NavSys), *GetNameSafe(Controller), Controller ? *GetNameSafe(Controller->GetPawn()) : TEXT("NULL"));
+		return;
+	}
+
+	m_PFollowComp = InitNavigationControl(*Controller);
+	UE_LOG(LogTemp, Log, TEXT("init: %d"), m_PFollowComp->bIsActive );
+
+	if (m_PFollowComp == nullptr)
+	{
+		return;
+	}
+
+	if (!m_PFollowComp->IsPathFollowingAllowed())
+	{
+		return;
+	}
+
+	const bool bAlreadyAtGoal = m_PFollowComp->HasReached(GoalLocation, EPathFollowingReachMode::OverlapAgent);
+
+	// script source, keep only one move request at time
+	if (m_PFollowComp->GetStatus() != EPathFollowingStatus::Idle)
+	{
+		m_PFollowComp->AbortMove(*NavSys, FPathFollowingResultFlags::ForcedScript | FPathFollowingResultFlags::NewRequest
+			, FAIRequestID::AnyRequest, bAlreadyAtGoal ? EPathFollowingVelocityMode::Reset : EPathFollowingVelocityMode::Keep);
+	}
+
+	// script source, keep only one move request at time
+	if (m_PFollowComp->GetStatus() != EPathFollowingStatus::Idle)
+	{
+		m_PFollowComp->AbortMove(*NavSys, FPathFollowingResultFlags::ForcedScript | FPathFollowingResultFlags::NewRequest);
+	}
+
+	if (bAlreadyAtGoal)
+	{
+		m_PFollowComp->RequestMoveWithImmediateFinish(EPathFollowingResult::Success);
+	}
+	else
+	{
+		const ANavigationData* NavData = NavSys->GetNavDataForProps(Controller->GetNavAgentPropertiesRef());
+		if (NavData)
+		{
+			FPathFindingQuery Query(Controller, *NavData, Controller->GetNavAgentLocation(), GoalLocation);
+			FPathFindingResult Result = NavSys->FindPathSync(Query);
+			if (Result.IsSuccessful())
+			{
+				m_PFollowComp->RequestMove(FAIMoveRequest(GoalLocation), Result.Path);
+			}
+			else if (m_PFollowComp->GetStatus() != EPathFollowingStatus::Idle)
+			{
+				m_PFollowComp->RequestMoveWithImmediateFinish(EPathFollowingResult::Invalid);
+			}
+		}
+	}
+}
+
+void AAncientWorldPlayerController::CancelMoveToLocation()
+{
+	if (m_PFollowComp && m_PFollowComp->GetStatus() == EPathFollowingStatus::Moving)
+		m_PFollowComp->RequestMoveWithImmediateFinish(EPathFollowingResult::Aborted);
+}
