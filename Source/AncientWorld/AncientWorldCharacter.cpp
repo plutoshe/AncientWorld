@@ -7,8 +7,8 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PlayerController.h"
+#include "AncientWorldPlayerController.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "HeadMountedDisplayFunctionLibrary.h"
 #include "Materials/Material.h"
 #include "Engine/World.h"
 
@@ -35,6 +35,9 @@ AAncientWorldCharacter::AAncientWorldCharacter()
 	CameraBoom->TargetArmLength = 800.f;
 	CameraBoom->RelativeRotation = FRotator(-60.f, 0.f, 0.f);
 	CameraBoom->bDoCollisionTest = false; // Don't want to pull camera in when it collides with level
+	CameraBoom->bInheritPitch = false;
+	CameraBoom->bInheritRoll = false;
+	CameraBoom->bInheritYaw = false;
 
 	// Create a camera...
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("TopDownCamera"));
@@ -56,7 +59,8 @@ AAncientWorldCharacter::AAncientWorldCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = true;
 
-	m_CameraRotateSpeed = 180.f;
+	m_CameraRotateSpeed = 30.f;
+
 }
 
 void AAncientWorldCharacter::Tick(float DeltaSeconds)
@@ -76,6 +80,7 @@ void AAncientWorldCharacter::Tick(float DeltaSeconds)
 		}
 	}
 
+	PerformCameraRotation(DeltaSeconds);
 }
 #pragma region PlayerInputFunctions
 void AAncientWorldCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -92,22 +97,38 @@ void AAncientWorldCharacter::SetupPlayerInputComponent(class UInputComponent* Pl
 
 void AAncientWorldCharacter::MoveForward(float axis)
 {
-
+	AAncientWorldPlayerController* myController = Cast<AAncientWorldPlayerController>(GetController());
+	if ((axis > 0.1f || axis < -0.1f) && myController) myController->CancelMoveToLocation();
+	FVector dir = CameraComp->GetForwardVector();
+	dir.Z = 0;
+	AddMovementInput(dir.GetSafeNormal()*axis);
 }
 
 void AAncientWorldCharacter::MoveRight(float axis)
 {
+	AAncientWorldPlayerController* myController = Cast<AAncientWorldPlayerController>(GetController());
+	if ((axis > 0.1f || axis < -0.1f) && myController) myController->CancelMoveToLocation();
+
+	AddMovementInput(CameraComp->GetRightVector() * axis);
 
 }
 
 void AAncientWorldCharacter::RotateCamera90Clockwise()
 {
-
+	if (!m_bRotating) {
+		m_DestRotator = CameraBoom->GetComponentRotation();
+		m_DestRotator.Add(0, 90, 0);
+		m_bRotating = true;
+	}
 }
 
 void AAncientWorldCharacter::RotateCamera90CounterClockwise()
 {
-
+	if (!m_bRotating) {
+		m_DestRotator = CameraBoom->GetComponentRotation();
+		m_DestRotator.Add(0, -90, 0);
+		m_bRotating = true;
+	}
 }
 
 void AAncientWorldCharacter::Jump()
@@ -125,8 +146,18 @@ void AAncientWorldCharacter::UnCrouch()
 	Super::UnCrouch();
 }
 
+
+
 #pragma endregion
 
-
-
+void AAncientWorldCharacter::PerformCameraRotation(float DeltaSeconds)
+{
+	if (m_bRotating) {
+		CameraBoom->SetWorldRotation(FMath::RInterpTo(CameraBoom->GetComponentRotation(), m_DestRotator, DeltaSeconds, m_CameraRotateSpeed));
+		if (CameraBoom->GetComponentRotation().Equals(m_DestRotator, 0.01f)) {
+			m_bRotating = false;
+			CameraBoom->SetWorldRotation(m_DestRotator);
+		}
+	}
+}
 

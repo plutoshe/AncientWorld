@@ -38,7 +38,10 @@ protected:
 	bool m_bRotating;
 	FRotator m_DestRotator;
 	UPROPERTY(EditDefaultsOnly, Category = Camera)
-		float m_CameraRotateSpeed;
+	float m_CameraRotateSpeed;
+
+	void PerformCameraRotation(float DeltaSeconds);
+
 private:
 	/** Top down camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
