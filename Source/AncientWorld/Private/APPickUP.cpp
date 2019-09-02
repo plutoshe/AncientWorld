@@ -21,6 +21,8 @@ AAPPickUP::AAPPickUP()
 
 	m_MoveSpeed = 20.f;
 	m_bCanMoveToPlayer = true;
+	m_floatDistance = 5;
+	m_floatSpeed = 1;
 }
 
 void AAPPickUP::OnPawnEnter(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
@@ -38,17 +40,42 @@ void AAPPickUP::OnPawnEnter(UPrimitiveComponent* OverlappedComponent, AActor* Ot
 void AAPPickUP::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	m_startTime = FMath::RandRange(5, 20);
+	if (m_bRandomizeScaleOnSpawn) {
+		RandomizeScale();
+	}
 }
 
 void AAPPickUP::StartMoveToPlayer(AAncientWorldCharacter* _InsideCharacter)
 {
 	m_bMovingToPlayer = true;
 	m_InsideCharacter = _InsideCharacter;
+
+	OverlapComp->SetSimulatePhysics(false);
+	OverlapComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	
 	SuperMesh->SetSimulatePhysics(false);
 	SuperMesh->SetPhysicsLinearVelocity(FVector::ZeroVector);
 	SuperMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
+}
+
+void AAPPickUP::RandomizeScale()
+{
+	float rnd = FMath::RandRange(0.9f, 1.3f);
+	SetActorScale3D(GetActorScale()*rnd);
+}
+
+void AAPPickUP::SimulateFloat(float _deltaTime)
+{
+	if (m_floatDistance > 0) {
+		FVector NewLoc = SuperMesh->RelativeLocation;
+
+		float deltaZ = (FMath::Sin(m_startTime*m_floatSpeed + _deltaTime) - FMath::Sin(m_startTime*m_floatSpeed));
+		NewLoc.Z += deltaZ * m_floatDistance;
+		m_startTime += _deltaTime;
+		SuperMesh->SetRelativeLocation(NewLoc);
+	}
 }
 
 // Called every frame
@@ -69,5 +96,6 @@ void AAPPickUP::Tick(float DeltaTime)
 
 	}
 
+	SimulateFloat(DeltaTime);
 }
 

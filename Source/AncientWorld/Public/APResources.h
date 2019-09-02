@@ -27,6 +27,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Utils")
 	float m_MaxHealth;
 	float m_CurrentHealth;
+	UPROPERTY(EditDefaultsOnly, Category = "Utils")
+		float m_XYOffset;
 
 	virtual void BeginPlay() override;
 

@@ -165,12 +165,15 @@ void AAncientWorldCharacter::PerformCameraRotation(float DeltaSeconds)
 void AAncientWorldCharacter::SetSelectingItem(FInventoryItem* _item)
 {
 	m_currentItem = _item;
+	UE_LOG(LogTemp, Log, TEXT("Using: %s"), *m_currentItem->ItemID.ToString());
 }
 
 void AAncientWorldCharacter::ClearItem()
 {
 	// clear
 	m_currentItem = nullptr;
+	UE_LOG(LogTemp, Log, TEXT("Clear my hand"));
+
 }
 
 void AAncientWorldCharacter::AddItemToInventory(FName itemID)
@@ -182,11 +185,37 @@ void AAncientWorldCharacter::AddItemToInventory(FName itemID)
 	FInventoryItem* ItemToAdd = table->FindRow<FInventoryItem>(itemID, "");
 
 	if (ItemToAdd) {
-		Inventory.Add(*ItemToAdd);
+		bool repeatedItem = false;
+		int exisitID = 0;
+		for (int i = 0; i < Inventory.Num(); i++)
+		{
+			if (Inventory[i].ItemID.IsEqual(ItemToAdd->ItemID) && ItemToAdd->bCanStack) {
+				repeatedItem = true;
+				exisitID = i;
+				break;
+			}
+		}
+		if (repeatedItem) {
+			Inventory[exisitID].Value++;
+			UE_LOG(LogTemp, Log, TEXT("Item [%s] already exist, increase to value [%d]"), *Inventory[exisitID].Name.ToString(), Inventory[exisitID].Value);
+		}
+		else {
+			Inventory.Add(*ItemToAdd);
+			UE_LOG(LogTemp, Log, TEXT("Add Item [%s] to inventory, it's value is [%d]"), *ItemToAdd->Name.ToString(), ItemToAdd->Value);
+
+		}
+
 	}
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Invalid ItemID"));
 	}
+}
+
+void AAncientWorldCharacter::SwitchToItem(int slotID)
+{
+	if (Inventory.Num() <= slotID) { ClearItem(); return; }
+
+	SetSelectingItem(&Inventory[slotID]);
 }
 

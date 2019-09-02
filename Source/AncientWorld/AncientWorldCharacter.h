@@ -36,6 +36,8 @@ public:
 		FText Describtion;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		bool bCanBeUsed;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		bool bCanStack;
 
 	bool operator==(const FInventoryItem& other) const {
 		return ItemID == other.ItemID;
@@ -60,9 +62,7 @@ public:
 	/** Returns CursorToWorld subobject **/
 	FORCEINLINE class UDecalComponent* GetCursorToWorld() { return CursorToWorld; }
 
-	UFUNCTION(BlueprintCallable, Category = "Utils")
-		void AddItemToInventory(FName itemID);
-	FInventoryItem* GetCurrentItem() const { return m_currentItem; }
+
 protected:
 #pragma region PlayerInputFunctions
 	void MoveForward(float axis);
@@ -83,6 +83,7 @@ protected:
 
 #pragma region Inventory
 
+protected:
 	UPROPERTY(VisibleAnywhere, Category = "Utils")
 		TArray<FInventoryItem> Inventory;
 
@@ -90,6 +91,12 @@ protected:
 
 	void SetSelectingItem(FInventoryItem* _item);
 	void ClearItem();
+public:
+	UFUNCTION(BlueprintCallable, Category = "Utils")
+		void AddItemToInventory(FName itemID);
+	FInventoryItem* GetCurrentItem() const { return m_currentItem; }
+
+	void SwitchToItem(int slotID);
 
 #pragma endregion
 

@@ -6,8 +6,10 @@
 #include "Public/APPickUP.h"
 #include "Engine/World.h"
 #include "AncientWorldCharacter.h"
+#include "Components/StaticMeshComponent.h"
 AAPResources::AAPResources()
 {
+	m_XYOffset = 1;
 }
 
 void AAPResources::BeginPlay()
@@ -37,7 +39,12 @@ void AAPResources::SpawnItems()
 	// Spawn rewards
 	for (TSubclassOf<class AAPPickUP> pickUp : m_spawnPickList)
 	{
-		AAPPickUP* sp = GetWorld()->SpawnActor<AAPPickUP>(pickUp, GetActorLocation(), GetActorRotation(), ActorSpawnParams);
+		FVector RndDirection = FMath::VRand();
+		RndDirection.Z = 0;
+		AAPPickUP* sp = GetWorld()->SpawnActor<AAPPickUP>(pickUp, GetActorLocation()+ RndDirection* m_XYOffset, GetActorRotation(), ActorSpawnParams);
+
+
+		//sp->GetStaticMesh()->AddImpulse(RndDirection * m_RndImpulse, NAME_None, true);
 	}
 }
 

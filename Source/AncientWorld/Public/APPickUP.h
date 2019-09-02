@@ -24,6 +24,9 @@ public:
 		FText m_Describtion;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		bool m_bCanBeUsed;
+
+	FORCEINLINE class UStaticMeshComponent* GetStaticMesh() const { return SuperMesh; }
+
 protected:
 
 	// Overlap Function for going to player
@@ -38,18 +41,31 @@ protected:
 		bool m_bCanMoveToPlayer;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 		float m_MoveSpeed;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+		bool m_bRandomizeScaleOnSpawn;
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 private:
-	bool m_bMovingToPlayer;
-	UPROPERTY(EditDefaultsOnly)
-	float m_ThresholdToDestroy;
+
 	class AAncientWorldCharacter* m_InsideCharacter;
+	bool m_bMovingToPlayer;
+
+	float m_startTime;
+	UPROPERTY(EditDefaultsOnly)
+		float m_ThresholdToDestroy;
+	UPROPERTY(EditDefaultsOnly)
+		float m_floatDistance;
+	UPROPERTY(EditDefaultsOnly)
+	float m_floatSpeed;
+
 
 	UFUNCTION(BlueprintCallable, Category = "Utils")
 		void StartMoveToPlayer(AAncientWorldCharacter* m_InsideCharacter);
+
+	void RandomizeScale();
+	void SimulateFloat(float _deltaTime);
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
