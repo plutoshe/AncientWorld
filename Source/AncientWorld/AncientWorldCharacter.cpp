@@ -12,6 +12,7 @@
 #include "Materials/Material.h"
 #include "Engine/World.h"
 #include "Engine/Classes/Kismet/GameplayStatics.h"
+#include "BuildingSystemPawn.h"
 
 AAncientWorldCharacter::AAncientWorldCharacter()
 {
@@ -101,6 +102,12 @@ void AAncientWorldCharacter::ChangeToBuildingSystem()
 {
 	UE_LOG(LogTemp, Log, TEXT("Change Level to Building System"));
 	UGameplayStatics::OpenLevel(GetWorld(), "BuildingSystem");
+
+	AController* controller = GetController();
+	controller->UnPossess();
+	FVector NewLocation = GetActorLocation() + FVector(0.f, 0.f, 300.f);
+	ABuildingSystemPawn* character = GetWorld()->SpawnActor<ABuildingSystemPawn>(ABuildingSystemPawn::StaticClass(), NewLocation, FRotator::ZeroRotator);
+	controller->Possess(character);
 }
 
 void AAncientWorldCharacter::MoveForward(float axis)
