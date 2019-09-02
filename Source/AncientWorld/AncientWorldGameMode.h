@@ -13,6 +13,13 @@ class AAncientWorldGameMode : public AGameModeBase
 
 public:
 	AAncientWorldGameMode();
+
+	class UDataTable* GetItemDB() const { return m_InventoryItemDB; }
+
+protected:
+
+	UPROPERTY(EditDefaultsOnly)
+		class UDataTable* m_InventoryItemDB;
 };
 
 

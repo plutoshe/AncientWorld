@@ -11,6 +11,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Materials/Material.h"
 #include "Engine/World.h"
+#include "AncientWorldGameMode.h"
 
 AAncientWorldCharacter::AAncientWorldCharacter()
 {
@@ -158,6 +159,23 @@ void AAncientWorldCharacter::PerformCameraRotation(float DeltaSeconds)
 			m_bRotating = false;
 			CameraBoom->SetWorldRotation(m_DestRotator);
 		}
+	}
+}
+
+void AAncientWorldCharacter::AddItemToInventory(FName itemID)
+{
+	AAncientWorldGameMode* GM = Cast<AAncientWorldGameMode>(GetWorld()->GetAuthGameMode());
+
+	UDataTable* table = GM->GetItemDB();
+
+	FInventoryItem* ItemToAdd = table->FindRow<FInventoryItem>(itemID, "");
+
+	if (ItemToAdd) {
+		Inventory.Add(*ItemToAdd);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Invalid ItemID"));
 	}
 }
 

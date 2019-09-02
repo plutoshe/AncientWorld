@@ -4,7 +4,43 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Engine/DataTable.h"
 #include "AncientWorldCharacter.generated.h"
+
+USTRUCT(BlueprintType)
+struct FInventoryItem : public FTableRowBase {
+
+	GENERATED_BODY()
+
+public:
+	FInventoryItem() {
+		Name = FText::FromString("Item");
+		Action = FText::FromString("Use");
+		Describtion = FText::FromString("Add Description");
+		Value = 10;
+	}
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		FName ItemID;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		TSubclassOf<class AAPPickUP> ItemPickUp;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		FText Name;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		FText Action;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		int32  Value;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		class UTexture2D* Thumbnail;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		FText Describtion;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		bool bCanBeUsed;
+
+	bool operator==(const FInventoryItem& other) const {
+		return ItemID == other.ItemID;
+	}
+};
 
 UCLASS(Blueprintable)
 class AAncientWorldCharacter : public ACharacter
@@ -24,6 +60,9 @@ public:
 	/** Returns CursorToWorld subobject **/
 	FORCEINLINE class UDecalComponent* GetCursorToWorld() { return CursorToWorld; }
 
+	UFUNCTION(BlueprintCallable, Category = "Utils")
+		void AddItemToInventory(FName itemID);
+
 protected:	
 #pragma region PlayerInputFunctions
 	void MoveForward(float axis);
@@ -42,6 +81,14 @@ protected:
 
 	void PerformCameraRotation(float DeltaSeconds);
 
+#pragma region Inventory
+
+	UPROPERTY(VisibleAnywhere, Category = "Utils")
+	TArray<FInventoryItem> Inventory;
+
+#pragma endregion
+
+
 private:
 	/** Top down camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -52,7 +99,7 @@ private:
 	class USpringArmComponent* CameraBoom;
 
 	/** A decal that projects to the cursor location. */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Component, meta = (AllowPrivateAccess = "true"))
 	class UDecalComponent* CursorToWorld;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
