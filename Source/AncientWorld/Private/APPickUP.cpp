@@ -46,6 +46,7 @@ void AAPPickUP::StartMoveToPlayer(AAncientWorldCharacter* _InsideCharacter)
 	m_bMovingToPlayer = true;
 	m_InsideCharacter = _InsideCharacter;
 	SuperMesh->SetSimulatePhysics(false);
+	SuperMesh->SetPhysicsLinearVelocity(FVector::ZeroVector);
 	SuperMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 }

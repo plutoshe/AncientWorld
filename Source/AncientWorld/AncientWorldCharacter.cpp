@@ -162,6 +162,17 @@ void AAncientWorldCharacter::PerformCameraRotation(float DeltaSeconds)
 	}
 }
 
+void AAncientWorldCharacter::SetSelectingItem(FInventoryItem* _item)
+{
+	m_currentItem = _item;
+}
+
+void AAncientWorldCharacter::ClearItem()
+{
+	// clear
+	m_currentItem = nullptr;
+}
+
 void AAncientWorldCharacter::AddItemToInventory(FName itemID)
 {
 	AAncientWorldGameMode* GM = Cast<AAncientWorldGameMode>(GetWorld()->GetAuthGameMode());

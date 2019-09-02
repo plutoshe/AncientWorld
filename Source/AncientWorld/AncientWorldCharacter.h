@@ -62,8 +62,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Utils")
 		void AddItemToInventory(FName itemID);
-
-protected:	
+	FInventoryItem* GetCurrentItem() const { return m_currentItem; }
+protected:
 #pragma region PlayerInputFunctions
 	void MoveForward(float axis);
 	void MoveRight(float axis);
@@ -77,14 +77,19 @@ protected:
 	bool m_bRotating;
 	FRotator m_DestRotator;
 	UPROPERTY(EditDefaultsOnly, Category = Camera)
-	float m_CameraRotateSpeed;
+		float m_CameraRotateSpeed;
 
 	void PerformCameraRotation(float DeltaSeconds);
 
 #pragma region Inventory
 
 	UPROPERTY(VisibleAnywhere, Category = "Utils")
-	TArray<FInventoryItem> Inventory;
+		TArray<FInventoryItem> Inventory;
+
+	FInventoryItem* m_currentItem;
+
+	void SetSelectingItem(FInventoryItem* _item);
+	void ClearItem();
 
 #pragma endregion
 
@@ -92,15 +97,15 @@ protected:
 private:
 	/** Top down camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class UCameraComponent* CameraComp;
+		class UCameraComponent* CameraComp;
 
 	/** Camera boom positioning the camera above the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class USpringArmComponent* CameraBoom;
+		class USpringArmComponent* CameraBoom;
 
 	/** A decal that projects to the cursor location. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Component, meta = (AllowPrivateAccess = "true"))
-	class UDecalComponent* CursorToWorld;
+		class UDecalComponent* CursorToWorld;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 };

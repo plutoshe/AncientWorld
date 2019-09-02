@@ -38,8 +38,8 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	virtual void Interact() { if (!m_InteratingActor) return; m_bInteracting = true; BPInteract(); };
-	virtual void UnInteract() { if (!m_bInteracting) return; m_bInteracting = false; BPUnInteract(); };
+	virtual void Interact();
+	virtual void UnInteract();
 
 	void SetWidgetVisibility(bool _show);
 

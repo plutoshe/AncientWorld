@@ -10,7 +10,7 @@
 // Sets default values
 AAPInteractItemBase::AAPInteractItemBase()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	CapComp = CreateDefaultSubobject<UCapsuleComponent>(TEXT("CapComp"));
@@ -70,6 +70,20 @@ void AAPInteractItemBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void AAPInteractItemBase::Interact()
+{
+	if (!m_InteratingActor) return;
+	m_bInteracting = true;
+	BPInteract();
+}
+
+void AAPInteractItemBase::UnInteract()
+{
+	if(!m_bInteracting) return;
+	m_bInteracting = false;
+	BPUnInteract();
 }
 
 void AAPInteractItemBase::SetWidgetVisibility(bool _show)
