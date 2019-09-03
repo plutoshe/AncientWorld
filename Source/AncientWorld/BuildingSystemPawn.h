@@ -17,6 +17,11 @@ public:
 	void MoveUp();
 	void MoveDown();
 	void MoveForBuilding(int direction);
+	void BuildAction();
+	UFUNCTION(BlueprintCallable, Category = "MyCategory")
+		void BuildComplete(UStaticMesh* mesh, UMaterial* mat);
+	UFUNCTION(BlueprintCallable, Category = "MyCategory")
+		void BuildCancellation();
 	ABuildingSystemPawn();
 
 protected:
@@ -35,8 +40,17 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		class USpringArmComponent* CameraBoon;
 private:
-	FVector MoveCameraDst;
-	FVector MoveCameraSrc;
-	float MoveTimeSpan;
-	float MoveSpendTime;
+	FVector m_MoveCameraDst;
+	FVector m_MoveCameraSrc;
+	float m_MoveTimeSpan;
+	float m_MoveRemainingTime;
+	APlayerController *m_PlayerController;
+	UMaterial *m_FMaterial;
+	UStaticMesh * m_FMeshAsset;
+	class AStaticMeshActor* m_BuildingBlock;
+	float m_LayerLength;
+	int m_select;
+	TArray<int> m_BuildingSlot;
+
 };
+
