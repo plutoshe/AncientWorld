@@ -73,6 +73,7 @@ protected:
 	void MoveRight(float axis);
 	void RotateCamera90Clockwise();
 	void RotateCamera90CounterClockwise();
+	void ChangeToBuildingSystem();
 	void Jump();
 	void Crouch();
 	void UnCrouch();
