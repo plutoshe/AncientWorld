@@ -63,6 +63,8 @@ void AAncientWorldPlayerController::SetNewMoveDestination(const FHitResult& outH
 	if (MyPawn)
 	{
 		AAPInteractItemBase* interactBase = Cast<AAPInteractItemBase>(outHit.Actor);
+		AAncientWorldCharacter* myCharacter = Cast<AAncientWorldCharacter>(GetPawn());
+
 		if (interactBase) {
 			float const Distance = FVector::Dist(outHit.ImpactPoint, MyPawn->GetActorLocation());
 
@@ -74,8 +76,12 @@ void AAncientWorldPlayerController::SetNewMoveDestination(const FHitResult& outH
 			}
 
 			if (interactBase->GetCanPawnInteract()) {
-				interactBase->Interact();
+				myCharacter->InteractWithTool(interactBase);
 			}
+		}
+		else {
+			// not interacting with interactItemBase
+			myCharacter->InteractWithTool(nullptr);
 		}
 
 

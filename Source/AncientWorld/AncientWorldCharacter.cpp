@@ -12,6 +12,8 @@
 #include "Materials/Material.h"
 #include "Engine/World.h"
 #include "AncientWorldGameMode.h"
+#include "Components/SceneComponent.h"
+#include "Public/APToolBase.h"
 
 AAncientWorldCharacter::AAncientWorldCharacter()
 {
@@ -62,6 +64,8 @@ AAncientWorldCharacter::AAncientWorldCharacter()
 
 	m_CameraRotateSpeed = 30.f;
 
+	InteractPointComp = CreateDefaultSubobject<USceneComponent>(TEXT("InteractPointComp"));
+	InteractPointComp->SetupAttachment(RootComponent);
 }
 
 void AAncientWorldCharacter::Tick(float DeltaSeconds)
@@ -83,6 +87,14 @@ void AAncientWorldCharacter::Tick(float DeltaSeconds)
 
 	PerformCameraRotation(DeltaSeconds);
 }
+void AAncientWorldCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+	// Spawn tools when activates
+	SpawnUsefulTools();
+}
+
+
 #pragma region PlayerInputFunctions
 void AAncientWorldCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
@@ -95,6 +107,7 @@ void AAncientWorldCharacter::SetupPlayerInputComponent(class UInputComponent* Pl
 	PlayerInputComponent->BindAction("RotateCameraC", IE_Pressed, this, &AAncientWorldCharacter::RotateCamera90Clockwise);
 	PlayerInputComponent->BindAction("RotateCameraCC", IE_Pressed, this, &AAncientWorldCharacter::RotateCamera90CounterClockwise);
 }
+
 
 void AAncientWorldCharacter::MoveForward(float axis)
 {
@@ -161,19 +174,70 @@ void AAncientWorldCharacter::PerformCameraRotation(float DeltaSeconds)
 		}
 	}
 }
+#pragma region InventorySystem
+
 
 void AAncientWorldCharacter::SetSelectingItem(FInventoryItem* _item)
 {
-	m_currentItem = _item;
-	UE_LOG(LogTemp, Log, TEXT("Using: %s"), *m_currentItem->ItemID.ToString());
+	if (_item != nullptr) {
+		// Deselected previous one
+		if (m_currentItem) {
+			AAPToolBase* previous_Tool = *m_spawnedToolList.Find(m_currentItem->ItemID);
+			if (previous_Tool) {
+				previous_Tool->OnDeSelected();
+			}
+		}
+		else {
+			UE_LOG(LogTemp, Log, TEXT("No previous item"));
+		}
+
+		// Select the current one
+		m_currentItem = _item;
+		AAPToolBase* currentTool = *m_spawnedToolList.Find(m_currentItem->ItemID);
+		if (currentTool) {
+			m_usingTool = currentTool;
+			currentTool->OnSelected();
+		}
+
+		UE_LOG(LogTemp, Log, TEXT("Using: %s"), *m_currentItem->ItemID.ToString());
+	}
+
 }
 
 void AAncientWorldCharacter::ClearItem()
 {
-	// clear
-	m_currentItem = nullptr;
-	UE_LOG(LogTemp, Log, TEXT("Clear my hand"));
+	if (m_currentItem != nullptr) {
+		// Deselected previous one
+		AAPToolBase* previousItem = *m_spawnedToolList.Find(m_currentItem->ItemID);
+		if (previousItem) {
+			previousItem->OnDeSelected();
+		}
 
+		// clear
+		m_currentItem = nullptr;
+		m_usingTool = nullptr;
+		UE_LOG(LogTemp, Log, TEXT("Clear my hand"));
+
+	}
+}
+
+void AAncientWorldCharacter::SpawnUsefulTools()
+{
+	AAncientWorldGameMode* GM = Cast<AAncientWorldGameMode>(GetWorld()->GetAuthGameMode());
+	TArray<TSubclassOf<AAPToolBase>> spawnList = GM->GetSpawnToolList();
+
+	for (TSubclassOf<AAPToolBase> toolClass : spawnList)
+	{
+		FActorSpawnParameters ActorSpawnParams;
+		ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		AAPToolBase* spawnedTool = GetWorld()->SpawnActor<AAPToolBase>(toolClass, InteractPointComp->GetComponentLocation(), InteractPointComp->GetComponentRotation(), ActorSpawnParams);
+		// Add fname / spawn tool to the tool base
+		m_spawnedToolList.Add(spawnedTool->m_ItemID, spawnedTool);
+		// Disable the tool
+		spawnedTool->SetOwner(this);
+		spawnedTool->DeSelected();
+	}
 }
 
 void AAncientWorldCharacter::AddItemToInventory(FName itemID)
@@ -219,3 +283,11 @@ void AAncientWorldCharacter::SwitchToItem(int slotID)
 	SetSelectingItem(&Inventory[slotID]);
 }
 
+void AAncientWorldCharacter::InteractWithTool(AAPInteractItemBase* interactBase)
+{
+	if (m_usingTool != nullptr) {
+		m_usingTool->StartUse(interactBase);
+	}
+}
+
+#pragma endregion

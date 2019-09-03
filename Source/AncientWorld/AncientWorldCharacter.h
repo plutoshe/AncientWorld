@@ -62,8 +62,12 @@ public:
 	/** Returns CursorToWorld subobject **/
 	FORCEINLINE class UDecalComponent* GetCursorToWorld() { return CursorToWorld; }
 
+	FORCEINLINE  FVector GetInteractPointLocation() { return InteractPointComp->GetComponentLocation(); }
+	FORCEINLINE  FRotator GetInteractPointRotation() { return InteractPointComp->GetComponentRotation(); }
+
 
 protected:
+	virtual void BeginPlay() override;
 #pragma region PlayerInputFunctions
 	void MoveForward(float axis);
 	void MoveRight(float axis);
@@ -88,15 +92,20 @@ protected:
 		TArray<FInventoryItem> Inventory;
 
 	FInventoryItem* m_currentItem;
+	class AAPToolBase* m_usingTool;
 
 	void SetSelectingItem(FInventoryItem* _item);
 	void ClearItem();
+	TMap<FName, class AAPToolBase*> m_spawnedToolList;
+	// Spawn all useful tools and disable them.
+	void SpawnUsefulTools();
 public:
 	UFUNCTION(BlueprintCallable, Category = "Utils")
 		void AddItemToInventory(FName itemID);
 	FInventoryItem* GetCurrentItem() const { return m_currentItem; }
 
 	void SwitchToItem(int slotID);
+	void InteractWithTool(class AAPInteractItemBase* interactBase);
 
 #pragma endregion
 
@@ -114,6 +123,11 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Component, meta = (AllowPrivateAccess = "true"))
 		class UDecalComponent* CursorToWorld;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Component, meta = (AllowPrivateAccess = "true"))
+		class USceneComponent* InteractPointComp;
+
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+
 };
 
