@@ -11,6 +11,9 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Materials/Material.h"
 #include "Engine/World.h"
+#include "AncientWorldGameMode.h"
+#include "Components/SceneComponent.h"
+#include "Public/APToolBase.h"
 #include "Engine/Classes/Kismet/GameplayStatics.h"
 #include "BuildingSystemPawn.h"
 
@@ -63,6 +66,8 @@ AAncientWorldCharacter::AAncientWorldCharacter()
 
 	m_CameraRotateSpeed = 30.f;
 
+	InteractPointComp = CreateDefaultSubobject<USceneComponent>(TEXT("InteractPointComp"));
+	InteractPointComp->SetupAttachment(RootComponent);
 }
 
 void AAncientWorldCharacter::Tick(float DeltaSeconds)
@@ -84,6 +89,14 @@ void AAncientWorldCharacter::Tick(float DeltaSeconds)
 
 	PerformCameraRotation(DeltaSeconds);
 }
+void AAncientWorldCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+	// Spawn tools when activates
+	SpawnUsefulTools();
+}
+
+
 #pragma region PlayerInputFunctions
 void AAncientWorldCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
@@ -109,6 +122,7 @@ void AAncientWorldCharacter::ChangeToBuildingSystem()
 	ABuildingSystemPawn* character = GetWorld()->SpawnActor<ABuildingSystemPawn>(ABuildingSystemPawn::StaticClass(), NewLocation, FRotator::ZeroRotator);
 	controller->Possess(character);
 }
+
 
 void AAncientWorldCharacter::MoveForward(float axis)
 {
@@ -175,4 +189,120 @@ void AAncientWorldCharacter::PerformCameraRotation(float DeltaSeconds)
 		}
 	}
 }
+#pragma region InventorySystem
 
+
+void AAncientWorldCharacter::SetSelectingItem(FInventoryItem* _item)
+{
+	if (_item != nullptr) {
+		// Deselected previous one
+		if (m_currentItem) {
+			AAPToolBase* previous_Tool = *m_spawnedToolList.Find(m_currentItem->ItemID);
+			if (previous_Tool) {
+				previous_Tool->OnDeSelected();
+			}
+		}
+		else {
+			UE_LOG(LogTemp, Log, TEXT("No previous item"));
+		}
+
+		// Select the current one
+		m_currentItem = _item;
+		AAPToolBase* currentTool = *m_spawnedToolList.Find(m_currentItem->ItemID);
+		if (currentTool) {
+			m_usingTool = currentTool;
+			currentTool->OnSelected();
+		}
+
+		UE_LOG(LogTemp, Log, TEXT("Using: %s"), *m_currentItem->ItemID.ToString());
+	}
+
+}
+
+void AAncientWorldCharacter::ClearItem()
+{
+	if (m_currentItem != nullptr) {
+		// Deselected previous one
+		AAPToolBase* previousItem = *m_spawnedToolList.Find(m_currentItem->ItemID);
+		if (previousItem) {
+			previousItem->OnDeSelected();
+		}
+
+		// clear
+		m_currentItem = nullptr;
+		m_usingTool = nullptr;
+		UE_LOG(LogTemp, Log, TEXT("Clear my hand"));
+
+	}
+}
+
+void AAncientWorldCharacter::SpawnUsefulTools()
+{
+	AAncientWorldGameMode* GM = Cast<AAncientWorldGameMode>(GetWorld()->GetAuthGameMode());
+	TArray<TSubclassOf<AAPToolBase>> spawnList = GM->GetSpawnToolList();
+
+	for (TSubclassOf<AAPToolBase> toolClass : spawnList)
+	{
+		FActorSpawnParameters ActorSpawnParams;
+		ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		AAPToolBase* spawnedTool = GetWorld()->SpawnActor<AAPToolBase>(toolClass, InteractPointComp->GetComponentLocation(), InteractPointComp->GetComponentRotation(), ActorSpawnParams);
+		// Add fname / spawn tool to the tool base
+		m_spawnedToolList.Add(spawnedTool->m_ItemID, spawnedTool);
+		// Disable the tool
+		spawnedTool->SetOwner(this);
+		spawnedTool->DeSelected();
+	}
+}
+
+void AAncientWorldCharacter::AddItemToInventory(FName itemID)
+{
+	AAncientWorldGameMode* GM = Cast<AAncientWorldGameMode>(GetWorld()->GetAuthGameMode());
+
+	UDataTable* table = GM->GetItemDB();
+
+	FInventoryItem* ItemToAdd = table->FindRow<FInventoryItem>(itemID, "");
+
+	if (ItemToAdd) {
+		bool repeatedItem = false;
+		int exisitID = 0;
+		for (int i = 0; i < Inventory.Num(); i++)
+		{
+			if (Inventory[i].ItemID.IsEqual(ItemToAdd->ItemID) && ItemToAdd->bCanStack) {
+				repeatedItem = true;
+				exisitID = i;
+				break;
+			}
+		}
+		if (repeatedItem) {
+			Inventory[exisitID].Value++;
+			UE_LOG(LogTemp, Log, TEXT("Item [%s] already exist, increase to value [%d]"), *Inventory[exisitID].Name.ToString(), Inventory[exisitID].Value);
+		}
+		else {
+			Inventory.Add(*ItemToAdd);
+			UE_LOG(LogTemp, Log, TEXT("Add Item [%s] to inventory, it's value is [%d]"), *ItemToAdd->Name.ToString(), ItemToAdd->Value);
+
+		}
+
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Invalid ItemID"));
+	}
+}
+
+void AAncientWorldCharacter::SwitchToItem(int slotID)
+{
+	if (Inventory.Num() <= slotID) { ClearItem(); return; }
+
+	SetSelectingItem(&Inventory[slotID]);
+}
+
+void AAncientWorldCharacter::InteractWithTool(AAPInteractItemBase* interactBase)
+{
+	if (m_usingTool != nullptr) {
+		m_usingTool->StartUse(interactBase);
+	}
+}
+
+#pragma endregion

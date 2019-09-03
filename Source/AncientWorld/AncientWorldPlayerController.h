@@ -38,6 +38,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "AI|Navigation")
 		void CancelMoveToLocation();
 
+
+	void SwitchToItem1();
+	void SwitchToItem2();
+	void SwitchToItem3();
+	void SwitchToItem4();
 	class UPathFollowingComponent* InitNavigationControl(AController& Controller);
 };
 

@@ -36,6 +36,11 @@ void AAncientWorldPlayerController::SetupInputComponent()
 	Super::SetupInputComponent();
 
 	InputComponent->BindAction("Interact", IE_Pressed, this, &AAncientWorldPlayerController::OnMouseClick);
+	InputComponent->BindAction("Item1", IE_Pressed, this, &AAncientWorldPlayerController::SwitchToItem1);
+	InputComponent->BindAction("Item2", IE_Pressed, this, &AAncientWorldPlayerController::SwitchToItem2);
+	InputComponent->BindAction("Item3", IE_Pressed, this, &AAncientWorldPlayerController::SwitchToItem3);
+	InputComponent->BindAction("Item4", IE_Pressed, this, &AAncientWorldPlayerController::SwitchToItem4);
+
 }
 
 
@@ -58,6 +63,8 @@ void AAncientWorldPlayerController::SetNewMoveDestination(const FHitResult& outH
 	if (MyPawn)
 	{
 		AAPInteractItemBase* interactBase = Cast<AAPInteractItemBase>(outHit.Actor);
+		AAncientWorldCharacter* myCharacter = Cast<AAncientWorldCharacter>(GetPawn());
+
 		if (interactBase) {
 			float const Distance = FVector::Dist(outHit.ImpactPoint, MyPawn->GetActorLocation());
 
@@ -69,8 +76,12 @@ void AAncientWorldPlayerController::SetNewMoveDestination(const FHitResult& outH
 			}
 
 			if (interactBase->GetCanPawnInteract()) {
-				interactBase->Interact();
+				myCharacter->InteractWithTool(interactBase);
 			}
+		}
+		else {
+			// not interacting with interactItemBase
+			myCharacter->InteractWithTool(nullptr);
 		}
 
 
@@ -168,4 +179,37 @@ void AAncientWorldPlayerController::CancelMoveToLocation()
 {
 	if (m_PFollowComp && m_PFollowComp->GetStatus() == EPathFollowingStatus::Moving)
 		m_PFollowComp->RequestMoveWithImmediateFinish(EPathFollowingResult::Aborted);
+}
+
+void AAncientWorldPlayerController::SwitchToItem1()
+{
+	AAncientWorldCharacter* myCharacter = Cast<AAncientWorldCharacter>(GetPawn());
+	if (myCharacter) {
+		myCharacter->SwitchToItem(0);
+	}
+}
+
+void AAncientWorldPlayerController::SwitchToItem2()
+{
+	AAncientWorldCharacter* myCharacter = Cast<AAncientWorldCharacter>(GetPawn());
+	if (myCharacter) {
+		myCharacter->SwitchToItem(1);
+
+	}
+}
+
+void AAncientWorldPlayerController::SwitchToItem3()
+{
+	AAncientWorldCharacter* myCharacter = Cast<AAncientWorldCharacter>(GetPawn());
+	if (myCharacter) {
+		myCharacter->SwitchToItem(2);
+	}
+}
+
+void AAncientWorldPlayerController::SwitchToItem4()
+{
+	AAncientWorldCharacter* myCharacter = Cast<AAncientWorldCharacter>(GetPawn());
+	if (myCharacter) {
+		myCharacter->SwitchToItem(3);
+	}
 }
