@@ -276,10 +276,12 @@ void AAncientWorldCharacter::AddItemToInventory(FName itemID)
 		}
 		if (repeatedItem) {
 			Inventory[exisitID].Value++;
+			OnAddExistingItem(itemID);
 			UE_LOG(LogTemp, Log, TEXT("Item [%s] already exist, increase to value [%d]"), *Inventory[exisitID].Name.ToString(), Inventory[exisitID].Value);
 		}
 		else {
 			Inventory.Add(*ItemToAdd);
+			OnAddNewItem(*ItemToAdd);
 			UE_LOG(LogTemp, Log, TEXT("Add Item [%s] to inventory, it's value is [%d]"), *ItemToAdd->Name.ToString(), ItemToAdd->Value);
 
 		}
