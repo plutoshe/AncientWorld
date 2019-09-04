@@ -18,6 +18,7 @@ AAPPickUP::AAPPickUP()
 
 	SuperMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SuperMesh"));
 	SuperMesh->SetupAttachment(RootComponent);
+	
 
 	m_MoveSpeed = 650.f;
 	m_bCanMoveToPlayer = true;
@@ -44,6 +45,9 @@ void AAPPickUP::BeginPlay()
 	m_startTime = FMath::RandRange(5, 20);
 	if (m_bRandomizeScaleOnSpawn) {
 		RandomizeScale();
+		UStaticMesh* rndMesh = GetRandomMesh();
+		if(rndMesh)
+		SuperMesh->SetStaticMesh(rndMesh);
 	}
 }
 
@@ -77,6 +81,14 @@ void AAPPickUP::SimulateFloat(float _deltaTime)
 		m_startTime += _deltaTime;
 		SuperMesh->SetRelativeLocation(NewLoc);
 	}
+}
+
+UStaticMesh* AAPPickUP::GetRandomMesh()
+{
+	if (m_RandomMeshList.Num() < 1) return nullptr;
+	int idx = FMath::RandRange(0, m_RandomMeshList.Num()-1);
+	
+	return m_RandomMeshList[idx];
 }
 
 // Called every frame

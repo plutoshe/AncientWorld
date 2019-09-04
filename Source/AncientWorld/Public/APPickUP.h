@@ -35,6 +35,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Component, meta = (AllowPrivateAccess = "true"))
 		class UStaticMeshComponent* SuperMesh;
 
+	UPROPERTY(EditDefaultsOnly, Category = Component)
+		TArray<class UStaticMesh*> m_RandomMeshList;
+
 	UFUNCTION()
 		void OnPawnEnter(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -66,6 +69,9 @@ private:
 
 	void RandomizeScale();
 	void SimulateFloat(float _deltaTime);
+
+	UStaticMesh* GetRandomMesh();
+
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

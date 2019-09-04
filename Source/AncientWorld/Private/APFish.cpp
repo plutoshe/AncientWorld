@@ -91,7 +91,7 @@ void AAPFish::TraceToObstcle()
 	FHitResult outHit;
 	FVector Start = GetActorLocation();
 	FVector End = GetActorLocation() + GetActorForwardVector()*(SphereComp->GetScaledSphereRadius() +10);
-	DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 0.1f);
+//	DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 0.1f);
 
 	if (GetWorld()->LineTraceSingleByChannel(outHit, Start,
 		End, ECC_WorldStatic, CollisionQueryParam)) {
