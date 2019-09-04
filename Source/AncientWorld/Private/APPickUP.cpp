@@ -19,10 +19,11 @@ AAPPickUP::AAPPickUP()
 	SuperMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SuperMesh"));
 	SuperMesh->SetupAttachment(RootComponent);
 
-	m_MoveSpeed = 20.f;
+	m_MoveSpeed = 650.f;
 	m_bCanMoveToPlayer = true;
 	m_floatDistance = 5;
 	m_floatSpeed = 1;
+	m_ThresholdToDestroy = 1;
 }
 
 void AAPPickUP::OnPawnEnter(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
@@ -85,7 +86,7 @@ void AAPPickUP::Tick(float DeltaTime)
 
 	if (m_bCanMoveToPlayer && m_bMovingToPlayer) {
 		FVector dir = m_InsideCharacter->GetActorLocation() - GetActorLocation();
-		SetActorLocation(GetActorLocation() + dir * m_MoveSpeed * DeltaTime);
+		SetActorLocation(GetActorLocation() + dir.GetSafeNormal() * m_MoveSpeed * DeltaTime);
 
 		if (dir.Size() < m_ThresholdToDestroy) {
 			m_bMovingToPlayer = false;
