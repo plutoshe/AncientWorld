@@ -80,6 +80,10 @@ void AAncientWorldPlayerController::SetNewMoveDestination(const FHitResult& outH
 
 			if (interactBase->GetCanPawnInteract()) {
 				myCharacter->InteractWithTool(interactBase);
+				FRotator newROt = (outHit.Actor->GetActorLocation() - myCharacter->GetActorLocation()).Rotation();
+				newROt.Pitch = 0;
+				newROt.Roll = 0;
+				myCharacter->SetActorRotation(newROt);
 			}
 		}
 		else {

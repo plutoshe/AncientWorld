@@ -25,8 +25,6 @@ AAPInteractItemBase::AAPInteractItemBase()
 	OverlapComp->OnComponentBeginOverlap.AddDynamic(this, &AAPInteractItemBase::OnPawnEnter);
 	OverlapComp->OnComponentEndOverlap.AddDynamic(this, &AAPInteractItemBase::OnPawnLeft);
 
-	SuperMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Static Mesh"));
-	SuperMesh->SetupAttachment(CapComp);
 
 	WidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComp"));
 	WidgetComp->SetupAttachment(CapComp);
@@ -46,6 +44,7 @@ void AAPInteractItemBase::OnPawnEnter(UPrimitiveComponent* OverlappedComponent, 
 		AAncientWorldCharacter* characterBase = Cast<AAncientWorldCharacter>(OtherActor);
 		if (characterBase) {
 			m_InteratingActor = characterBase;
+
 			SetWidgetVisibility(true);
 		}
 	}
