@@ -40,6 +40,9 @@ void AAncientWorldPlayerController::SetupInputComponent()
 	InputComponent->BindAction("Item2", IE_Pressed, this, &AAncientWorldPlayerController::SwitchToItem2);
 	InputComponent->BindAction("Item3", IE_Pressed, this, &AAncientWorldPlayerController::SwitchToItem3);
 	InputComponent->BindAction("Item4", IE_Pressed, this, &AAncientWorldPlayerController::SwitchToItem4);
+	InputComponent->BindAction("Item5", IE_Pressed, this, &AAncientWorldPlayerController::SwitchToItem5);
+	InputComponent->BindAction("Item6", IE_Pressed, this, &AAncientWorldPlayerController::SwitchToItem6);
+	InputComponent->BindAction("Item7", IE_Pressed, this, &AAncientWorldPlayerController::SwitchToItem7);
 
 }
 
@@ -211,5 +214,27 @@ void AAncientWorldPlayerController::SwitchToItem4()
 	AAncientWorldCharacter* myCharacter = Cast<AAncientWorldCharacter>(GetPawn());
 	if (myCharacter) {
 		myCharacter->SwitchToItem(3);
+	}
+}
+
+void AAncientWorldPlayerController::SwitchToItem5()
+{
+	AAncientWorldCharacter* myCharacter = Cast<AAncientWorldCharacter>(GetPawn());
+	if (myCharacter) {
+		myCharacter->SwitchToItem(4);
+	}
+}
+void AAncientWorldPlayerController::SwitchToItem6()
+{
+	AAncientWorldCharacter* myCharacter = Cast<AAncientWorldCharacter>(GetPawn());
+	if (myCharacter) {
+		myCharacter->SwitchToItem(5);
+	}
+}
+void AAncientWorldPlayerController::SwitchToItem7()
+{
+	AAncientWorldCharacter* myCharacter = Cast<AAncientWorldCharacter>(GetPawn());
+	if (myCharacter) {
+		myCharacter->SwitchToItem(6);
 	}
 }

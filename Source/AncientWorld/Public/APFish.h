@@ -36,9 +36,10 @@ protected:
 		float m_SwingTailGroundSpeed;
 	UPROPERTY(EditAnywhere, Category = FishGroundMovement)
 		float m_BounceThreshold;
-	UPROPERTY(VisibleAnywhere, Category = FishGroundMovement)
+public:
+	UPROPERTY(EditAnywhere,BlueprintReadOnly, Category = FishGroundMovement)
 		bool m_bOnWater;
-
+protected:
 	float m_SwingAngle;
 #pragma endregion
 #pragma region WaterMovement

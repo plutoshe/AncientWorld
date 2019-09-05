@@ -53,7 +53,7 @@ void AAPResources::Interact()
 	Super::Interact();
 
 	// it is a required tool
-	if (true || m_requiredItemID == m_InteratingActor->GetCurrentItem()->ItemID) {
+	if (m_requiredItemID.IsEqual( m_InteratingActor->GetCurrentItem()->ItemID)) {
 		GetDamage(10);
 		//spawnedActor = World->SpawnActor<AMyActor>(AMyActor::StaticClass(), location, rotate, SpawnInfo);
 
