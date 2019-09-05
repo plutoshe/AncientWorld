@@ -7,6 +7,7 @@
 #include "Engine/World.h"
 #include "AncientWorldCharacter.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/SphereComponent.h"
 AAPResources::AAPResources()
 {
 	m_XYOffset = 1;
@@ -41,8 +42,7 @@ void AAPResources::SpawnItems()
 	{
 		FVector RndDirection = FMath::VRand();
 		RndDirection.Z = 0;
-		AAPPickUP* sp = GetWorld()->SpawnActor<AAPPickUP>(pickUp, GetActorLocation()+ RndDirection* m_XYOffset, GetActorRotation(), ActorSpawnParams);
-
+		AAPPickUP* sp = GetWorld()->SpawnActor<AAPPickUP>(pickUp, OverlapComp->GetComponentLocation()+ RndDirection* m_XYOffset, GetActorRotation(), ActorSpawnParams);
 
 		//sp->GetStaticMesh()->AddImpulse(RndDirection * m_RndImpulse, NAME_None, true);
 	}
