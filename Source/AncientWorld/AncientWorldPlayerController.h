@@ -43,6 +43,9 @@ public:
 	void SwitchToItem2();
 	void SwitchToItem3();
 	void SwitchToItem4();
+	void SwitchToItem5();
+	void SwitchToItem6();
+	void SwitchToItem7();
 	class UPathFollowingComponent* InitNavigationControl(AController& Controller);
 };
 

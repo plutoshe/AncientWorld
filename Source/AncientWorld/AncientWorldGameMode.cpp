@@ -8,12 +8,6 @@
 AAncientWorldGameMode::AAncientWorldGameMode()
 {
 	// use our custom PlayerController class
-	PlayerControllerClass = AAncientWorldPlayerController::StaticClass();
 
-	// set default pawn class to our Blueprinted character
-	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/TopDownTemplate/Blueprints/TopDownCharacter"));
-	if (PlayerPawnBPClass.Class != NULL)
-	{
-		DefaultPawnClass = PlayerPawnBPClass.Class;
-	}
+
 }

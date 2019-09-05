@@ -18,11 +18,13 @@ AAPPickUP::AAPPickUP()
 
 	SuperMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SuperMesh"));
 	SuperMesh->SetupAttachment(RootComponent);
+	
 
-	m_MoveSpeed = 20.f;
+	m_MoveSpeed = 650.f;
 	m_bCanMoveToPlayer = true;
 	m_floatDistance = 5;
 	m_floatSpeed = 1;
+	m_ThresholdToDestroy = 1;
 }
 
 void AAPPickUP::OnPawnEnter(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
@@ -43,6 +45,9 @@ void AAPPickUP::BeginPlay()
 	m_startTime = FMath::RandRange(5, 20);
 	if (m_bRandomizeScaleOnSpawn) {
 		RandomizeScale();
+		UStaticMesh* rndMesh = GetRandomMesh();
+		if(rndMesh)
+		SuperMesh->SetStaticMesh(rndMesh);
 	}
 }
 
@@ -64,6 +69,7 @@ void AAPPickUP::RandomizeScale()
 {
 	float rnd = FMath::RandRange(0.9f, 1.3f);
 	SetActorScale3D(GetActorScale()*rnd);
+	SuperMesh->SetRelativeRotation(FMath::VRand().Rotation());
 }
 
 void AAPPickUP::SimulateFloat(float _deltaTime)
@@ -78,6 +84,14 @@ void AAPPickUP::SimulateFloat(float _deltaTime)
 	}
 }
 
+UStaticMesh* AAPPickUP::GetRandomMesh()
+{
+	if (m_RandomMeshList.Num() < 1) return nullptr;
+	int idx = FMath::RandRange(0, m_RandomMeshList.Num()-1);
+	
+	return m_RandomMeshList[idx];
+}
+
 // Called every frame
 void AAPPickUP::Tick(float DeltaTime)
 {
@@ -85,7 +99,7 @@ void AAPPickUP::Tick(float DeltaTime)
 
 	if (m_bCanMoveToPlayer && m_bMovingToPlayer) {
 		FVector dir = m_InsideCharacter->GetActorLocation() - GetActorLocation();
-		SetActorLocation(GetActorLocation() + dir * m_MoveSpeed * DeltaTime);
+		SetActorLocation(GetActorLocation() + dir.GetSafeNormal() * m_MoveSpeed * DeltaTime);
 
 		if (dir.Size() < m_ThresholdToDestroy) {
 			m_bMovingToPlayer = false;

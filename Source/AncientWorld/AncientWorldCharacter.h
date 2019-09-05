@@ -108,6 +108,12 @@ public:
 	void SwitchToItem(int slotID);
 	void InteractWithTool(class AAPInteractItemBase* interactBase);
 
+	UFUNCTION(BlueprintImplementableEvent)
+		void OnAddNewItem(FInventoryItem _newItem);
+	UFUNCTION(BlueprintImplementableEvent)
+		void OnAddExistingItem(FName _name);
+
+
 #pragma endregion
 
 
