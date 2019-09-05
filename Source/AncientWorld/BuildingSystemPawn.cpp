@@ -15,6 +15,9 @@
 #include "Engine/Classes/GameFramework/Actor.h"
 #include "Engine/Classes/Engine/StaticMesh.h"
 #include "CoreUObject/Public/UObject/ConstructorHelpers.h"
+#include "AncientWorldGameInstance.h"
+
+
 
 // Sets default values
 ABuildingSystemPawn::ABuildingSystemPawn()
@@ -37,24 +40,25 @@ ABuildingSystemPawn::ABuildingSystemPawn()
 	CameraBoon->bInheritYaw = false;
 	m_MoveRemainingTime = 0;
 	m_MoveTimeSpan = 0;
-	ConstructorHelpers::FObjectFinder<UMaterial> FoundMaterial(TEXT("Material'/Game/Resources/Materials/WaitBuilding.WaitBuilding'"));
-	ConstructorHelpers::FObjectFinder<UStaticMesh> MeshAsset(TEXT("StaticMesh'/Game/Geometry/Meshes/1M_Cube.1M_Cube'"));
-	if (FoundMaterial.Succeeded())
-	{
-		m_FMaterial = FoundMaterial.Object;
-	}
-	if (MeshAsset.Succeeded())
-	{
-		m_FMeshAsset = MeshAsset.Object;
-	}
 
-
-	
 }
 
 // Called when the game starts or when spawned
 void ABuildingSystemPawn::BeginPlay()
 {
+	m_gameStateInstance = static_cast<UAncientWorldGameInstance*>(UGameplayStatics::GetGameInstance(GetWorld()));
+	for (int i = 0; i < m_gameStateInstance->m_baseStatus.Num(); i++)
+	{
+		
+		AStaticMeshActor* newBlcock = static_cast<AStaticMeshActor*>(GetWorld()->SpawnActor(AStaticMeshActor::StaticClass()));
+		newBlcock->SetMobility(EComponentMobility::Movable);
+		newBlcock->GetStaticMeshComponent()->SetStaticMesh(m_gameStateInstance->m_buildings[m_gameStateInstance->m_baseStatus[i].m_buildingBlockIndex].m_mesh);
+		newBlcock->GetStaticMeshComponent()->SetMaterial(0, m_gameStateInstance->m_buildings[m_gameStateInstance->m_baseStatus[i].m_buildingBlockIndex].m_material);
+		FVector result = m_gameStateInstance->m_BasePoint + m_gameStateInstance->m_baseStatus[i].m_positionIndexForBase * m_gameStateInstance->m_BaseLayerLength;
+		UE_LOG(LogTemp, Log, TEXT("%.2f %.2f %.2f %.2f"), m_gameStateInstance->m_baseStatus[i].m_positionIndexForBase.Z, result.X, result.Y, result.Z);
+		newBlcock->SetActorLocation(m_gameStateInstance->m_BasePoint + m_gameStateInstance->m_baseStatus[i].m_positionIndexForBase * m_gameStateInstance->m_BaseLayerLength);
+	}
+
 	m_MoveCameraDst = this->GetActorLocation();
 	m_BuildingSlot.Init(2, 2);
 	m_BuildingSlot[0] = 2;
@@ -84,32 +88,13 @@ void ABuildingSystemPawn::BuildAction()
 	if (m_BuildingBlock == nullptr)
 	{
 		UE_LOG(LogTemp, Log, TEXT("BuildAction"));
-		//GetWorld()->SpawnActor(AStaticMeshActor::StaticClass(), &FVector(0,0,0));
-
 		m_BuildingBlock = static_cast<AStaticMeshActor*>(GetWorld()->SpawnActor(AStaticMeshActor::StaticClass()));
-		//TArray<UStaticMeshComponent*> Components;
-		//m_BuildingBlock->GetComponents<UStaticMeshComponent>(Components);
-		//Components[0]
-		UE_LOG(LogTemp, Log, TEXT("name111: %s"), *m_FMeshAsset->GetFullName());
 		m_BuildingBlock->SetMobility(EComponentMobility::Movable);
 		m_BuildingBlock->GetStaticMeshComponent()->SetMobility(EComponentMobility::Movable);
-		m_BuildingBlock->GetStaticMeshComponent()->SetStaticMesh(m_FMeshAsset);
-		m_BuildingBlock->GetStaticMeshComponent()->SetMaterial(0, m_FMaterial);
+		m_BuildingBlock->GetStaticMeshComponent()->SetStaticMesh(m_gameStateInstance->GetCurrentBuildingBlock()->m_mesh);
+		m_BuildingBlock->GetStaticMeshComponent()->SetMaterial(0, m_gameStateInstance->m_materialOnBuild);
 	}
-	
-	//UE_LOG(LogTemp, Log, TEXT("component num: %d"), Components.Num());
-//	for (int32 i = 0; i < Components.Num(); i++)
-//	{
-//		UStaticMeshComponent* StaticMeshComponent = Components[i];
-//		
-//		StaticMeshComponent->SetStaticMesh(m_FMeshAsset);
-////		UStaticMesh* StaticMesh = StaticMeshComponent->StaticMesh;
-//	}
-	//UStaticMeshComponent* MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
-	//UMaterial defaultMat(TEXT());
-	//m_BuildingBlock->GetComponentsByClass<UStaticMesh>().1
-	
-	
+
 }
  
 void ABuildingSystemPawn::BuildComplete(UStaticMesh* mesh, UMaterial* mat)

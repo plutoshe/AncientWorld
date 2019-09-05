@@ -45,9 +45,9 @@ private:
 	float m_MoveTimeSpan;
 	float m_MoveRemainingTime;
 	APlayerController *m_PlayerController;
-	UMaterial *m_FMaterial;
-	UStaticMesh * m_FMeshAsset;
+	
 	class AStaticMeshActor* m_BuildingBlock;
+	class UAncientWorldGameInstance* m_gameStateInstance;
 	float m_LayerLength;
 	int m_select;
 	TArray<int> m_BuildingSlot;
