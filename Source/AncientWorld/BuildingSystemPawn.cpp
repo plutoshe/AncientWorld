@@ -14,9 +14,8 @@
 #include "Engine/Classes/Engine/StaticMeshActor.h"
 #include "Engine/Classes/GameFramework/Actor.h"
 #include "Engine/Classes/Engine/StaticMesh.h"
-#include "CoreUObject/Public/UObject/ConstructorHelpers.h"
 #include "AncientWorldGameInstance.h"
-
+#include "CoreUObject/Public/UObject/ConstructorHelpers.h"
 
 
 // Sets default values
@@ -46,18 +45,8 @@ ABuildingSystemPawn::ABuildingSystemPawn()
 // Called when the game starts or when spawned
 void ABuildingSystemPawn::BeginPlay()
 {
+	Super::BeginPlay();
 	m_gameStateInstance = static_cast<UAncientWorldGameInstance*>(UGameplayStatics::GetGameInstance(GetWorld()));
-	for (int i = 0; i < m_gameStateInstance->m_baseStatus.Num(); i++)
-	{
-		
-		AStaticMeshActor* newBlcock = static_cast<AStaticMeshActor*>(GetWorld()->SpawnActor(AStaticMeshActor::StaticClass()));
-		newBlcock->SetMobility(EComponentMobility::Movable);
-		newBlcock->GetStaticMeshComponent()->SetStaticMesh(m_gameStateInstance->m_buildings[m_gameStateInstance->m_baseStatus[i].m_buildingBlockIndex].m_mesh);
-		newBlcock->GetStaticMeshComponent()->SetMaterial(0, m_gameStateInstance->m_buildings[m_gameStateInstance->m_baseStatus[i].m_buildingBlockIndex].m_material);
-		FVector result = m_gameStateInstance->m_BasePoint + m_gameStateInstance->m_baseStatus[i].m_positionIndexForBase * m_gameStateInstance->m_BaseLayerLength;
-		UE_LOG(LogTemp, Log, TEXT("%.2f %.2f %.2f %.2f"), m_gameStateInstance->m_baseStatus[i].m_positionIndexForBase.Z, result.X, result.Y, result.Z);
-		newBlcock->SetActorLocation(m_gameStateInstance->m_BasePoint + m_gameStateInstance->m_baseStatus[i].m_positionIndexForBase * m_gameStateInstance->m_BaseLayerLength);
-	}
 
 	m_MoveCameraDst = this->GetActorLocation();
 	m_BuildingSlot.Init(2, 2);
@@ -65,7 +54,7 @@ void ABuildingSystemPawn::BeginPlay()
 	m_BuildingSlot[1] = 4;
 	//m_BuildingSlot.Add(2.0f);
 	m_PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	Super::BeginPlay();
+
 	
 	
 }
