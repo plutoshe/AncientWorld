@@ -14,6 +14,10 @@ class ANCIENTWORLD_API ABuildingSynchronization : public AActor
 public:	
 	// Sets default values for this actor's properties
 	ABuildingSynchronization();
+	void ConfirmBuilding();
+	FVector ReturnSelectedPosition(FVector mousePosition);
+	FVector GetBuildingPositoinFromIndex(FVector index);
+	FVector GetCurrentSelectLocation();
 
 protected:
 	// Called when the game starts or when spawned
@@ -23,5 +27,9 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	class UAncientWorldGameInstance* m_gameStateInstance;
+	TArray<class AStaticMeshActor*> m_buildings;
+	TArray<FVector> m_BuildingSlot;
+	FVector basePoint;
 
+	int m_select;
 };

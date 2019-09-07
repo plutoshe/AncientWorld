@@ -16,7 +16,8 @@
 #include "Engine/Classes/Engine/StaticMesh.h"
 #include "AncientWorldGameInstance.h"
 #include "CoreUObject/Public/UObject/ConstructorHelpers.h"
-
+#include "Engine/Classes/Materials/Material.h"
+#include "Public/BuildingSynchronization.h"
 
 // Sets default values
 ABuildingSystemPawn::ABuildingSystemPawn()
@@ -49,9 +50,7 @@ void ABuildingSystemPawn::BeginPlay()
 	m_gameStateInstance = static_cast<UAncientWorldGameInstance*>(UGameplayStatics::GetGameInstance(GetWorld()));
 
 	m_MoveCameraDst = this->GetActorLocation();
-	m_BuildingSlot.Init(2, 2);
-	m_BuildingSlot[0] = 2;
-	m_BuildingSlot[1] = 4;
+
 	//m_BuildingSlot.Add(2.0f);
 	m_PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 
@@ -67,14 +66,14 @@ void ABuildingSystemPawn::SetupPlayerInputComponent(UInputComponent* PlayerInput
 	PlayerInputComponent->BindAction("MoveUp", IE_Pressed, this, &ABuildingSystemPawn::MoveUp);
 	PlayerInputComponent->BindAction("MoveDown", IE_Pressed, this, &ABuildingSystemPawn::MoveDown);
 	PlayerInputComponent->BindAction("BuildAction", IE_Pressed, this, &ABuildingSystemPawn::BuildAction);
-	//PlayerInputComponent->BindAction("BuildComplete", IE_Pressed, this, &ABuildingSystemPawn::BuildComplete);
+	PlayerInputComponent->BindAction("BuildComplete", IE_Pressed, this, &ABuildingSystemPawn::BuildComplete);
 	PlayerInputComponent->BindAction("BuildCancellation", IE_Pressed, this, &ABuildingSystemPawn::BuildCancellation);
 
 
 }
 void ABuildingSystemPawn::BuildAction()
 {
-	if (m_BuildingBlock == nullptr)
+	if (m_buildingsystem != nullptr)
 	{
 		UE_LOG(LogTemp, Log, TEXT("BuildAction"));
 		m_BuildingBlock = static_cast<AStaticMeshActor*>(GetWorld()->SpawnActor(AStaticMeshActor::StaticClass()));
@@ -86,28 +85,20 @@ void ABuildingSystemPawn::BuildAction()
 
 }
  
-void ABuildingSystemPawn::BuildComplete(UStaticMesh* mesh, UMaterial* mat)
+void ABuildingSystemPawn::BuildComplete()
 {
-	if (m_BuildingBlock)
+	UE_LOG(LogTemp, Log, TEXT("BuildComplete"));
+	if (m_buildingsystem != nullptr && m_BuildingBlock != nullptr)
 	{
-		UE_LOG(LogTemp, Log, TEXT("BuildComplete"));
-		m_BuildingBlock->GetStaticMeshComponent()->SetStaticMesh(mesh);
-		m_BuildingBlock->GetStaticMeshComponent()->SetMaterial(0, mat);
+		m_buildingsystem->ConfirmBuilding();
+		m_BuildingBlock->K2_DestroyActor();
 		m_BuildingBlock = nullptr;
-		if (m_select == 0)
-		{
-			m_BuildingSlot[0]--;
-		}
-		else
-		{
-			m_BuildingSlot[1]++;
-		}
 	}
 }
 
 void ABuildingSystemPawn::BuildCancellation()
 {
-	if (m_BuildingBlock != nullptr)
+	if (m_buildingsystem != nullptr && m_BuildingBlock != nullptr)
 	{
 		UE_LOG(LogTemp, Log, TEXT("BuildCancellation"));
 		m_BuildingBlock->K2_DestroyActor();
@@ -147,43 +138,20 @@ void ABuildingSystemPawn::Tick(float DeltaTime)
 	if (this->m_MoveRemainingTime > 0)
 	{
 		this->m_MoveRemainingTime = FMath::Max(this->m_MoveRemainingTime - DeltaTime, 0.0f);
-		//this->SetActorLocation(FVector(0, 0, 1000));
 		this->SetActorLocation(FMath::Lerp(this->m_MoveCameraSrc, this->m_MoveCameraDst, (this->m_MoveTimeSpan - this->m_MoveRemainingTime) / this->m_MoveTimeSpan));
-		/*FMath::FInterpTo()
-		(
-				CameraBoon->TargetArmLength,
-				desiredBoonLength,
-				deltaTime,
-				CameraZoomSpeed);*/
 	}
-	float mouseX;
-	float mouseY;
-	int32 viewportX;
-	int32 viewportY;
 
-	UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetMousePosition(mouseX, mouseY);
-	UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetViewportSize(viewportX, viewportY);
 	FVector wp, wd;
 	if (m_PlayerController != nullptr)
 	{
 		m_PlayerController->DeprojectMousePositionToWorld(wp, wd);
-		//UE_LOG(LogTemp, Log, TEXT("mouse: (%.2f %.2f %.2f) (%.2f %.2f %.2f )"), wp.X, wp.Y, wp.Z, wd.X, wd.Y, wd.Z);
 	}
 	
-	if (m_BuildingBlock != nullptr)
+	if (m_buildingsystem != nullptr && m_BuildingBlock != nullptr)
 	{
 		int position = -wp.X * wd.Z + wp.Z;
 		float minD = -1;
-		for (int i = 0; i < m_BuildingSlot.Num(); i++)
-		{
-			if (minD == -1 || FMath::Abs(m_BuildingSlot[i] * 100 + 50 - position) < minD)
-			{
-				minD = FMath::Abs(m_BuildingSlot[i] * 100 + 50 - position);
-				m_BuildingBlock->SetActorLocation(FVector(0, 100, m_BuildingSlot[i] * 100 + 50));
-				m_select = i;
-			}
-		}
-		
+		m_BuildingBlock->SetActorLocation(m_buildingsystem->ReturnSelectedPosition(FVector(0, 0, position)));
 	}
 }
 

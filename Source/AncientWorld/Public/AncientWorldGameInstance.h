@@ -15,10 +15,7 @@ struct FBuildingBlock
 {
 	GENERATED_BODY()
 public:
-	FBuildingBlock()
-	{
-
-	}
+	FBuildingBlock() {}
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		class UStaticMesh* m_mesh;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -36,6 +33,10 @@ public:
 		int m_buildingBlockIndex;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		FVector m_positionIndexForBase;
+	FBuildingStatus(int buildingBlockIndex, FVector postionIndex):
+		m_buildingBlockIndex(buildingBlockIndex), m_positionIndexForBase(postionIndex)
+	{}
+	FBuildingStatus() {}
 };
 
 UCLASS()
@@ -59,4 +60,5 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FTransform m_StoredPlayerTransfrom;
 	FBuildingBlock* GetCurrentBuildingBlock();
+	int GetCurrentBuildingBlockID();
 };

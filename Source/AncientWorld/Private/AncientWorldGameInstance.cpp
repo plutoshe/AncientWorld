@@ -18,3 +18,8 @@ FBuildingBlock* UAncientWorldGameInstance::GetCurrentBuildingBlock()
 
 	return nullptr;
 }
+
+int UAncientWorldGameInstance::GetCurrentBuildingBlockID()
+{
+	return m_currentSelectBuildingBlockID;
+}
