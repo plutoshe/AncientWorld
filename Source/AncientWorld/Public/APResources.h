@@ -17,7 +17,8 @@ class ANCIENTWORLD_API AAPResources : public AAPInteractItemBase
 
 		AAPResources();
 protected:
-
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components, meta = (AllowPrivateAccess = "true"))
+		class UStaticMeshComponent* SuperMesh;
 	UPROPERTY(EditAnywhere, Category = "Utils")
 	TArray<TSubclassOf<class AAPPickUP>> m_spawnPickList;
 

@@ -5,12 +5,15 @@
 #include "AncientWorldCharacter.h"
 #include "Public/APPickUP.h"
 #include "Engine/World.h"
-#include "AncientWorldCharacter.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SphereComponent.h"
 AAPResources::AAPResources()
 {
-	m_XYOffset = 1;
+
+	SuperMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Static Mesh"));
+	SuperMesh->SetupAttachment(RootComponent);
+
+	m_XYOffset = 20;
 }
 
 void AAPResources::BeginPlay()
@@ -55,8 +58,6 @@ void AAPResources::Interact()
 	// it is a required tool
 	if (m_requiredItemID.IsEqual( m_InteratingActor->GetCurrentItem()->ItemID)) {
 		GetDamage(10);
-		//spawnedActor = World->SpawnActor<AMyActor>(AMyActor::StaticClass(), location, rotate, SpawnInfo);
-
 
 	}
 }
