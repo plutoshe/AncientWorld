@@ -108,10 +108,17 @@ public:
 	void SwitchToItem(int slotID);
 	void InteractWithTool(class AAPInteractItemBase* interactBase);
 
+	void RemoveItemFromInventory(FName itemID, int _amount);
+
 	UFUNCTION(BlueprintImplementableEvent)
 		void OnAddNewItem(FInventoryItem _newItem);
 	UFUNCTION(BlueprintImplementableEvent)
 		void OnAddExistingItem(FName _name);
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void OnReduceItemAmount(FName _ref, int _amount);
+	UFUNCTION(BlueprintImplementableEvent)
+		void OnRemoveItem(FName _ref, int _idx);
 
 
 #pragma endregion

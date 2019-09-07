@@ -307,4 +307,37 @@ void AAncientWorldCharacter::InteractWithTool(AAPInteractItemBase* interactBase)
 	}
 }
 
+void AAncientWorldCharacter::RemoveItemFromInventory(FName itemID, int _amount)
+{
+	FInventoryItem* tempItem = nullptr;
+	int idx = -1;
+	for (int i = 0; i < Inventory.Num(); i++)
+	{
+		if (Inventory[i].ItemID.IsEqual(itemID)) {
+			tempItem = &Inventory[i];
+			idx = i;
+			break;
+		}
+	}
+	if (tempItem != nullptr) {
+		if (tempItem->bCanStack) {
+			tempItem->Value -= _amount;
+			OnReduceItemAmount(itemID, idx);
+			if (tempItem->Value <= 0) {
+				tempItem->Value = 0;
+				// remove the used item
+				Inventory.RemoveAt(idx);
+				RemoveItemFromInventory(itemID, idx);
+			}
+		}
+		else {
+			// remove the can not stacking item;
+			Inventory.RemoveAt(idx);
+			RemoveItemFromInventory(itemID, idx);
+		}
+	}
+
+
+}
+
 #pragma endregion

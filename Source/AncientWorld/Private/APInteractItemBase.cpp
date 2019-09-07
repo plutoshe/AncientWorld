@@ -29,6 +29,11 @@ AAPInteractItemBase::AAPInteractItemBase()
 	WidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComp"));
 	WidgetComp->SetupAttachment(CapComp);
 
+
+	OutlineMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("OutlineMesh"));
+	OutlineMesh->SetupAttachment(RootComponent);
+	OutlineMesh->SetVisibility(false);
+	m_bHasOutline = false;
 }
 
 // Called when the game starts or when spawned
@@ -45,7 +50,7 @@ void AAPInteractItemBase::OnPawnEnter(UPrimitiveComponent* OverlappedComponent, 
 		if (characterBase) {
 			m_InteratingActor = characterBase;
 
-			SetWidgetVisibility(true);
+			//SetWidgetVisibility(true);
 		}
 	}
 }
@@ -56,7 +61,7 @@ void AAPInteractItemBase::OnPawnLeft(UPrimitiveComponent* OverlappedComponent, A
 		AAncientWorldCharacter* characterBase = Cast<AAncientWorldCharacter>(OtherActor);
 		if (characterBase) {
 			if (m_InteratingActor == characterBase) {
-				SetWidgetVisibility(false);
+				//SetWidgetVisibility(false);
 				UnInteract();
 				m_InteratingActor = nullptr;
 			}
@@ -89,4 +94,5 @@ void AAPInteractItemBase::SetWidgetVisibility(bool _show)
 {
 	WidgetComp->SetVisibility(_show);
 }
+
 
