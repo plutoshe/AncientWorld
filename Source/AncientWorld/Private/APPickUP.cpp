@@ -69,7 +69,7 @@ void AAPPickUP::RandomizeScale()
 {
 	float rnd = FMath::RandRange(0.9f, 1.3f);
 	SetActorScale3D(GetActorScale()*rnd);
-	SuperMesh->SetRelativeRotation(FMath::VRand().Rotation());
+	SuperMesh->SetRelativeRotation(SuperMesh->RelativeRotation + FMath::VRand().Rotation());
 }
 
 void AAPPickUP::SimulateFloat(float _deltaTime)
