@@ -18,6 +18,7 @@
 #include "CoreUObject/Public/UObject/ConstructorHelpers.h"
 #include "Engine/Classes/Materials/Material.h"
 #include "Public/BuildingSynchronization.h"
+#include "Engine/Classes/Kismet/KismetMathLibrary.h"
 
 // Sets default values
 ABuildingSystemPawn::ABuildingSystemPawn()
@@ -48,14 +49,23 @@ void ABuildingSystemPawn::BeginPlay()
 {
 	Super::BeginPlay();
 	m_gameStateInstance = static_cast<UAncientWorldGameInstance*>(UGameplayStatics::GetGameInstance(GetWorld()));
-
-	m_MoveCameraDst = this->GetActorLocation();
-
-	//m_BuildingSlot.Add(2.0f);
+	m_MoveCameraDstZ = this->GetActorLocation().Z;
 	m_PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	m_cameraRotationInitialPoint = GetActorLocation();
+	m_cameraAngle = 0.f;
+	
+}
 
-	
-	
+void ABuildingSystemPawn::MoveBuildingCamera(float axis)
+{
+	if (this->m_MoveRemainingTime <= 0 && m_buildingsystem != nullptr)
+	{
+		m_cameraAngle += axis;
+		FRotator rot(0, m_cameraAngle, 0);
+		auto result = m_buildingsystem->GetActorLocation() + rot.RotateVector(m_cameraRotationInitialPoint - m_buildingsystem->GetActorLocation());
+		SetActorLocation(FVector(result.X, result.Y, GetActorLocation().Z));
+		SetActorRotation(UKismetMathLibrary::FindLookAtRotation(result, m_buildingsystem->GetActorLocation()));
+	}
 }
 
 // Called to bind functionality to input
@@ -68,8 +78,7 @@ void ABuildingSystemPawn::SetupPlayerInputComponent(UInputComponent* PlayerInput
 	PlayerInputComponent->BindAction("BuildAction", IE_Pressed, this, &ABuildingSystemPawn::BuildAction);
 	PlayerInputComponent->BindAction("BuildComplete", IE_Pressed, this, &ABuildingSystemPawn::BuildComplete);
 	PlayerInputComponent->BindAction("BuildCancellation", IE_Pressed, this, &ABuildingSystemPawn::BuildCancellation);
-
-
+	PlayerInputComponent->BindAxis("MoveRight", this, &ABuildingSystemPawn::MoveBuildingCamera);
 }
 void ABuildingSystemPawn::BuildAction()
 {
@@ -113,12 +122,14 @@ void ABuildingSystemPawn::ChangeToBuildingSystem()
 
 void ABuildingSystemPawn::MoveForBuilding(int direction)
 {
-	if (!(this->m_MoveCameraDst.Z >= 1000 && direction > 0 || this->m_MoveCameraDst.Z < -700 && direction < 0))
-	{
-		this->m_MoveCameraSrc = this->GetActorLocation();
-		this->m_MoveCameraDst = this->m_MoveCameraDst + FVector(0, 0, 200 * direction);
-		this->m_MoveTimeSpan = 0.5f + this->m_MoveRemainingTime;
-		this->m_MoveRemainingTime = 0.5f + this->m_MoveRemainingTime;
+	if (this->m_MoveRemainingTime <= 0) {
+		if (!(this->m_MoveCameraDstZ >= 1000 && direction > 0 || this->m_MoveCameraDstZ < -700 && direction < 0))
+		{
+			this->m_MoveCameraSrcZ = this->GetActorLocation().Z;
+			this->m_MoveCameraDstZ = this->m_MoveCameraSrcZ + 200 * direction;
+			this->m_MoveTimeSpan = 0.5f + this->m_MoveRemainingTime;
+			this->m_MoveRemainingTime = 0.5f + this->m_MoveRemainingTime;
+		}
 	}
 }
 
@@ -138,7 +149,8 @@ void ABuildingSystemPawn::Tick(float DeltaTime)
 	if (this->m_MoveRemainingTime > 0)
 	{
 		this->m_MoveRemainingTime = FMath::Max(this->m_MoveRemainingTime - DeltaTime, 0.0f);
-		this->SetActorLocation(FMath::Lerp(this->m_MoveCameraSrc, this->m_MoveCameraDst, (this->m_MoveTimeSpan - this->m_MoveRemainingTime) / this->m_MoveTimeSpan));
+		FVector currentLocation = this->GetActorLocation();
+		this->SetActorLocation(FVector(currentLocation.X, currentLocation.Y, FMath::Lerp(this->m_MoveCameraSrcZ, this->m_MoveCameraDstZ, (this->m_MoveTimeSpan - this->m_MoveRemainingTime) / this->m_MoveTimeSpan)));
 	}
 
 	FVector wp, wd;
@@ -153,6 +165,27 @@ void ABuildingSystemPawn::Tick(float DeltaTime)
 		float minD = -1;
 		m_BuildingBlock->SetActorLocation(m_buildingsystem->ReturnSelectedPosition(FVector(0, 0, position)));
 	}
+
+
+
+	if (UGameplayStatics::GetPlayerController(GetWorld(), 0)->IsInputKeyDown(EKeys::LeftMouseButton))
+	{
+		UE_LOG(LogTemp, Log, TEXT("Is mouse pressed"));
+		float mouseX, mouseY;
+		UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetMousePosition(mouseX, mouseY);
+		
+		if (m_IsMoveCamera)
+		{
+			MoveBuildingCamera((mouseX - m_lastMouseX) * m_inputSensitivity);
+		}
+		m_lastMouseX = mouseX;
+		m_IsMoveCamera = true;
+	}
+	else
+	{
+		m_IsMoveCamera = false;
+	}
+	
 }
 
 

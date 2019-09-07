@@ -22,7 +22,7 @@ public:
 	void MoveForBuilding(int direction);
 	void BuildAction();
 	void BuildComplete();
-	
+	void MoveBuildingCamera(float axis);
 	ABuildingSystemPawn();
 
 protected:
@@ -43,18 +43,24 @@ public:
 
 	UPROPERTY(EditAnywhere, BluePrintReadWrite)
 		class ABuildingSynchronization* m_buildingsystem;
-
+	UPROPERTY(EditAnywhere, BluePrintReadWrite)
+		float m_inputSensitivity;
 private:
 	class AStaticMeshActor* m_BuildingBlock;
 	class UAncientWorldGameInstance* m_gameStateInstance;
 	APlayerController* m_PlayerController;
 
-	FVector m_MoveCameraDst;
-	FVector m_MoveCameraSrc;
+	float m_MoveCameraDstZ;
+	float m_MoveCameraSrcZ;
 
 	float m_MoveTimeSpan;
 	float m_MoveRemainingTime;	
 	float m_LayerLength;
 	int m_select;
+
+	FVector m_cameraRotationInitialPoint;
+	float m_cameraAngle;
+	bool m_IsMoveCamera;
+	float m_lastMouseX;
 };
 

@@ -64,7 +64,7 @@ void ABuildingSynchronization::ConfirmBuilding()
 	newBlock->SetMobility(EComponentMobility::Movable);
 	newBlock->GetStaticMeshComponent()->SetStaticMesh(m_gameStateInstance->GetCurrentBuildingBlock()->m_mesh);
 	newBlock->GetStaticMeshComponent()->SetMaterial(0, m_gameStateInstance->GetCurrentBuildingBlock()->m_material);
-	newBlock->SetActorLocation(GetCurrentSelectLocation());
+	newBlock->SetActorTransform(FTransform(FQuat(0, 0, 0, 1.f), GetCurrentSelectLocation(), FVector(10,10,10)));
 	m_buildings.Add(newBlock);
 	m_gameStateInstance->m_baseStatus.Add(FBuildingStatus(m_gameStateInstance->GetCurrentBuildingBlockID(), m_BuildingSlot[m_select]));
 	switch (m_select)
