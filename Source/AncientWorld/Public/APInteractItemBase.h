@@ -33,6 +33,12 @@ protected:
 		void OnPawnLeft(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 	class AAncientWorldCharacter* m_InteratingActor;
 	bool m_bInteracting;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components, meta = (AllowPrivateAccess = "true"))
+		class UStaticMeshComponent* OutlineMesh;
+
+
+
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -41,12 +47,12 @@ public:
 	virtual void UnInteract();
 
 	void SetWidgetVisibility(bool _show);
-
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		bool m_bHasOutline;
 	UFUNCTION(BlueprintImplementableEvent, Category = Gameplay)
 		void BPInteract();
 	UFUNCTION(BlueprintImplementableEvent, Category = Gameplay)
 		void BPUnInteract();
-
 	FORCEINLINE bool GetCanPawnInteract() const { return m_InteratingActor != nullptr; }
 
 };

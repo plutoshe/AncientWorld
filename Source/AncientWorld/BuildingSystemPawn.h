@@ -12,16 +12,17 @@ class ANCIENTWORLD_API ABuildingSystemPawn : public APawn
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this pawn's properties
+
+	UFUNCTION(BlueprintCallable, Category = "MyCategory")
+		void BuildCancellation();
+	
 	void ChangeToBuildingSystem();
 	void MoveUp();
 	void MoveDown();
 	void MoveForBuilding(int direction);
 	void BuildAction();
-	UFUNCTION(BlueprintCallable, Category = "MyCategory")
-		void BuildComplete(UStaticMesh* mesh, UMaterial* mat);
-	UFUNCTION(BlueprintCallable, Category = "MyCategory")
-		void BuildCancellation();
+	void BuildComplete();
+	
 	ABuildingSystemPawn();
 
 protected:
@@ -39,18 +40,21 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		class USpringArmComponent* CameraBoon;
+
+	UPROPERTY(EditAnywhere, BluePrintReadWrite)
+		class ABuildingSynchronization* m_buildingsystem;
+
 private:
+	class AStaticMeshActor* m_BuildingBlock;
+	class UAncientWorldGameInstance* m_gameStateInstance;
+	APlayerController* m_PlayerController;
+
 	FVector m_MoveCameraDst;
 	FVector m_MoveCameraSrc;
+
 	float m_MoveTimeSpan;
-	float m_MoveRemainingTime;
-	APlayerController *m_PlayerController;
-	UMaterial *m_FMaterial;
-	UStaticMesh * m_FMeshAsset;
-	class AStaticMeshActor* m_BuildingBlock;
+	float m_MoveRemainingTime;	
 	float m_LayerLength;
 	int m_select;
-	TArray<int> m_BuildingSlot;
-
 };
 
