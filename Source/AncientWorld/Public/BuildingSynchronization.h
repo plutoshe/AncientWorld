@@ -18,6 +18,7 @@ public:
 	FVector ReturnSelectedPosition(FVector mousePosition);
 	FVector GetBuildingPositoinFromIndex(FVector index);
 	FVector GetCurrentSelectLocation();
+	void InitialBlock(class AStaticMeshActor* newBlock, int buildingId, bool setMaterial);
 
 protected:
 	// Called when the game starts or when spawned

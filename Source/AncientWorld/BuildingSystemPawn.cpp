@@ -85,10 +85,7 @@ void ABuildingSystemPawn::BuildAction()
 	if (m_buildingsystem != nullptr)
 	{
 		UE_LOG(LogTemp, Log, TEXT("BuildAction"));
-		m_BuildingBlock = static_cast<AStaticMeshActor*>(GetWorld()->SpawnActor(AStaticMeshActor::StaticClass()));
-		m_BuildingBlock->SetMobility(EComponentMobility::Movable);
-		m_BuildingBlock->GetStaticMeshComponent()->SetMobility(EComponentMobility::Movable);
-		m_BuildingBlock->GetStaticMeshComponent()->SetStaticMesh(m_gameStateInstance->GetCurrentBuildingBlock()->m_mesh);
+		m_buildingsystem->InitialBlock(m_BuildingBlock, m_gameStateInstance->GetCurrentBuildingBlockID(), false);
 		m_BuildingBlock->GetStaticMeshComponent()->SetMaterial(0, m_gameStateInstance->m_materialOnBuild);
 	}
 
@@ -123,10 +120,10 @@ void ABuildingSystemPawn::ChangeToBuildingSystem()
 void ABuildingSystemPawn::MoveForBuilding(int direction)
 {
 	if (this->m_MoveRemainingTime <= 0) {
-		if (!(this->m_MoveCameraDstZ >= 1000 && direction > 0 || this->m_MoveCameraDstZ < -700 && direction < 0))
+		if (!(this->m_MoveCameraDstZ >= 2000 && direction > 0 || this->m_MoveCameraDstZ < -1000 && direction < 0))
 		{
 			this->m_MoveCameraSrcZ = this->GetActorLocation().Z;
-			this->m_MoveCameraDstZ = this->m_MoveCameraSrcZ + 200 * direction;
+			this->m_MoveCameraDstZ = this->m_MoveCameraSrcZ + m_gameStateInstance->GetBuildingLayerLength().Z * 3 * direction;
 			this->m_MoveTimeSpan = 0.5f + this->m_MoveRemainingTime;
 			this->m_MoveRemainingTime = 0.5f + this->m_MoveRemainingTime;
 		}

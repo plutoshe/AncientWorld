@@ -23,3 +23,13 @@ int UAncientWorldGameInstance::GetCurrentBuildingBlockID()
 {
 	return m_currentSelectBuildingBlockID;
 }
+
+FVector UAncientWorldGameInstance::GetModelScale()
+{
+	return m_ModelScale;
+}
+
+FVector UAncientWorldGameInstance::GetBuildingLayerLength()
+{
+	return m_BaseLayerLength;
+}

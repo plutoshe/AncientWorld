@@ -26,6 +26,23 @@ FVector ABuildingSynchronization::GetBuildingPositoinFromIndex(FVector index)
 	return basePoint + index * m_gameStateInstance->m_BaseLayerLength;
 }
 
+void ABuildingSynchronization::InitialBlock(AStaticMeshActor* newBlock, int buildingId, bool setMaterial = true)
+{
+	newBlock->SetMobility(EComponentMobility::Movable);
+	newBlock->SetActorScale3D(m_gameStateInstance->GetModelScale());
+
+	newBlock->GetStaticMeshComponent()->SetStaticMesh(m_gameStateInstance->m_buildings[buildingId].m_mesh);
+	if (setMaterial)
+	{
+		for (int i = 0; i < m_gameStateInstance->m_buildings[buildingId].m_materials.Num(); i++)
+		{
+			newBlock->GetStaticMeshComponent()->SetMaterial(i, m_gameStateInstance->m_buildings[buildingId].m_materials[i]);
+		}
+	}
+	
+
+}
+
 // Called when the game starts or when spawned
 void ABuildingSynchronization::BeginPlay()
 {
@@ -37,13 +54,10 @@ void ABuildingSynchronization::BeginPlay()
 	m_BuildingSlot[1] = FVector(0, 0, 1000);
 	for (int i = 0; i < m_gameStateInstance->m_baseStatus.Num(); i++)
 	{
-		AStaticMeshActor* newBlcock = static_cast<AStaticMeshActor*>(GetWorld()->SpawnActor(AStaticMeshActor::StaticClass()));
-		newBlcock->SetMobility(EComponentMobility::Movable);
-		newBlcock->GetStaticMeshComponent()->SetStaticMesh(m_gameStateInstance->m_buildings[m_gameStateInstance->m_baseStatus[i].m_buildingBlockIndex].m_mesh);
-		newBlcock->GetStaticMeshComponent()->SetMaterial(0, m_gameStateInstance->m_buildings[m_gameStateInstance->m_baseStatus[i].m_buildingBlockIndex].m_material);
-
-		newBlcock->SetActorLocation(GetBuildingPositoinFromIndex(m_gameStateInstance->m_baseStatus[i].m_positionIndexForBase));
-		m_buildings.Add(newBlcock);
+		AStaticMeshActor* newBlock = static_cast<AStaticMeshActor*>(GetWorld()->SpawnActor(AStaticMeshActor::StaticClass()));
+		InitialBlock(newBlock, m_gameStateInstance->m_baseStatus[i].m_buildingBlockIndex);
+		newBlock->SetActorLocation(GetBuildingPositoinFromIndex(m_gameStateInstance->m_baseStatus[i].m_positionIndexForBase));
+		m_buildings.Add(newBlock);
 		m_BuildingSlot[0] = FVector(0, 0, FMath::Max(m_BuildingSlot[0].Z, m_gameStateInstance->m_baseStatus[i].m_positionIndexForBase.Z));
 		m_BuildingSlot[1] = FVector(0, 0, FMath::Min(m_BuildingSlot[1].Z, m_gameStateInstance->m_baseStatus[i].m_positionIndexForBase.Z));
 	}
@@ -61,10 +75,7 @@ void ABuildingSynchronization::ConfirmBuilding()
 {
 
 	AStaticMeshActor* newBlock = static_cast<AStaticMeshActor*>(GetWorld()->SpawnActor(AStaticMeshActor::StaticClass()));
-	newBlock->SetMobility(EComponentMobility::Movable);
-	newBlock->GetStaticMeshComponent()->SetStaticMesh(m_gameStateInstance->GetCurrentBuildingBlock()->m_mesh);
-	newBlock->GetStaticMeshComponent()->SetMaterial(0, m_gameStateInstance->GetCurrentBuildingBlock()->m_material);
-	newBlock->SetActorTransform(FTransform(FQuat(0, 0, 0, 1.f), GetCurrentSelectLocation(), FVector(10,10,10)));
+	InitialBlock(newBlock, m_gameStateInstance->GetCurrentBuildingBlockID());
 	m_buildings.Add(newBlock);
 	m_gameStateInstance->m_baseStatus.Add(FBuildingStatus(m_gameStateInstance->GetCurrentBuildingBlockID(), m_BuildingSlot[m_select]));
 	switch (m_select)

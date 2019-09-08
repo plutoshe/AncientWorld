@@ -19,7 +19,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		class UStaticMesh* m_mesh;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		class UMaterial* m_material;
+		TArray<UMaterial*> m_materials;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		int m_limitation;
 };
@@ -58,7 +58,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		FVector m_BaseLayerLength;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		FVector m_ModelScale;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FTransform m_StoredPlayerTransfrom;
 	FBuildingBlock* GetCurrentBuildingBlock();
+	FVector GetModelScale();
+	FVector GetBuildingLayerLength();
 	int GetCurrentBuildingBlockID();
 };
