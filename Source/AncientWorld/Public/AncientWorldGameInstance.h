@@ -21,7 +21,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		TArray<UMaterial*> m_materials;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		int m_limitation;
+		TArray<FIntVector> m_occupations;
 };
 
 USTRUCT(BlueprintType)
@@ -32,8 +32,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		int m_buildingBlockIndex;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		FVector m_positionIndexForBase;
-	FBuildingStatus(int buildingBlockIndex, FVector postionIndex):
+		FIntVector m_positionIndexForBase;
+	FBuildingStatus(int buildingBlockIndex, FIntVector postionIndex):
 		m_buildingBlockIndex(buildingBlockIndex), m_positionIndexForBase(postionIndex)
 	{}
 	FBuildingStatus() {}

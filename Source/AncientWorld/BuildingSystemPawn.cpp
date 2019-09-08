@@ -19,6 +19,7 @@
 #include "Engine/Classes/Materials/Material.h"
 #include "Public/BuildingSynchronization.h"
 #include "Engine/Classes/Kismet/KismetMathLibrary.h"
+#include "Public/BuildingBlockActor.h"
 
 // Sets default values
 ABuildingSystemPawn::ABuildingSystemPawn()
@@ -84,6 +85,7 @@ void ABuildingSystemPawn::BuildAction()
 {
 	if (m_buildingsystem != nullptr)
 	{
+		m_BuildingBlock = static_cast<ABuildingBlockActor*>(GetWorld()->SpawnActor(ABuildingBlockActor::StaticClass()));
 		UE_LOG(LogTemp, Log, TEXT("BuildAction"));
 		m_buildingsystem->InitialBlock(m_BuildingBlock, m_gameStateInstance->GetCurrentBuildingBlockID(), false);
 		m_BuildingBlock->GetStaticMeshComponent()->SetMaterial(0, m_gameStateInstance->m_materialOnBuild);
@@ -119,7 +121,7 @@ void ABuildingSystemPawn::ChangeToBuildingSystem()
 
 void ABuildingSystemPawn::MoveForBuilding(int direction)
 {
-	if (this->m_MoveRemainingTime <= 0) {
+	/*if (this->m_MoveRemainingTime <= 0) {
 		if (!(this->m_MoveCameraDstZ >= 2000 && direction > 0 || this->m_MoveCameraDstZ < -1000 && direction < 0))
 		{
 			this->m_MoveCameraSrcZ = this->GetActorLocation().Z;
@@ -127,17 +129,34 @@ void ABuildingSystemPawn::MoveForBuilding(int direction)
 			this->m_MoveTimeSpan = 0.5f + this->m_MoveRemainingTime;
 			this->m_MoveRemainingTime = 0.5f + this->m_MoveRemainingTime;
 		}
+	}*/
+	this->m_MoveCameraSrcZ = this->GetActorLocation().Z;
+	this->m_MoveTimeSpan = 0.5f;
+	this->m_MoveRemainingTime = 0.5f;
+	if (direction > 0)
+	{
+		this->m_MoveCameraDstZ = m_buildingsystem->GetTopZ();
+	}
+	else
+	{
+		this->m_MoveCameraDstZ = m_buildingsystem->GetBottomZ();
 	}
 }
 
 void ABuildingSystemPawn::MoveUp()
 {
-	MoveForBuilding(1);
+	if (this->m_MoveRemainingTime <= 0)
+	{
+		MoveForBuilding(1);
+	}
 }
 
 void ABuildingSystemPawn::MoveDown()
 {
-	MoveForBuilding(-1);
+	if (this->m_MoveRemainingTime <= 0)
+	{
+		MoveForBuilding(-1);
+	}
 }
 
 void ABuildingSystemPawn::Tick(float DeltaTime)

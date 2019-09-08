@@ -46,7 +46,7 @@ public:
 	UPROPERTY(EditAnywhere, BluePrintReadWrite)
 		float m_inputSensitivity;
 private:
-	class AStaticMeshActor* m_BuildingBlock;
+	class ABuildingBlockActor* m_BuildingBlock;
 	class UAncientWorldGameInstance* m_gameStateInstance;
 	APlayerController* m_PlayerController;
 

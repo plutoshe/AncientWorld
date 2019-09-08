@@ -6,6 +6,41 @@
 #include "GameFramework/Actor.h"
 #include "BuildingSynchronization.generated.h"
 
+USTRUCT(BlueprintType)
+struct FLayerConstructionStatus
+{
+	GENERATED_BODY()
+public:
+	static const int LayerMaxX = 2;
+	static const int LayerMaxY = 2;
+	static void initEmptyLayer(TArray<bool> &m_layerStatus)
+	{
+		m_layerStatus.Init(false, LayerMaxX * LayerMaxY);
+	}
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		int m_LayerID;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		TArray<bool> m_layerStatus;
+	int m_availableBlock;
+	FLayerConstructionStatus()
+	{}
+	FLayerConstructionStatus(int layerID)
+	{
+		m_LayerID = layerID;
+		initEmptyLayer(m_layerStatus);
+		m_availableBlock = LayerMaxX * LayerMaxY;
+	}
+	void SetLayerStatus(int x, int y, bool status)
+	{
+		m_layerStatus[x * LayerMaxY + y] = status;
+	}
+	bool GetLayerStatus(int x, int y)
+	{
+		return m_layerStatus[x * LayerMaxY + y];
+	}
+};
+
 UCLASS()
 class ANCIENTWORLD_API ABuildingSynchronization : public AActor
 {
@@ -16,9 +51,14 @@ public:
 	ABuildingSynchronization();
 	void ConfirmBuilding();
 	FVector ReturnSelectedPosition(FVector mousePosition);
-	FVector GetBuildingPositoinFromIndex(FVector index);
+	FVector GetBuildingPositoinFromIndex(FIntVector index);
 	FVector GetCurrentSelectLocation();
-	void InitialBlock(class AStaticMeshActor* newBlock, int buildingId, bool setMaterial);
+	void InitialBlock(class ABuildingBlockActor* newBlock, int buildingId, bool setMaterial);
+	void UpdateBuildingStatus(ABuildingBlockActor* block, bool isAddition);
+	int GetTopIndexZ();
+	int GetBottomIndexZ();
+	float GetTopZ();
+	float GetBottomZ();
 
 protected:
 	// Called when the game starts or when spawned
@@ -28,9 +68,11 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	class UAncientWorldGameInstance* m_gameStateInstance;
-	TArray<class AStaticMeshActor*> m_buildings;
+	TArray<class ABuildingBlockActor*> m_buildings;
 	TArray<FVector> m_BuildingSlot;
 	FVector basePoint;
 
-	int m_select;
+	FIntVector m_select;
+	TArray<FLayerConstructionStatus> m_UndergroundConstructionStatus;
+	TArray<FLayerConstructionStatus> m_HorizontalConstructionStatus;
 };
