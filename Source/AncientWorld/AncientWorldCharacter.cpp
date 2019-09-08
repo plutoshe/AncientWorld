@@ -16,6 +16,7 @@
 #include "Public/APToolBase.h"
 #include "Engine/Classes/Kismet/GameplayStatics.h"
 #include "BuildingSystemPawn.h"
+#include "Public/APInteractItemBase.h"
 
 AAncientWorldCharacter::AAncientWorldCharacter()
 {
@@ -302,9 +303,22 @@ void AAncientWorldCharacter::SwitchToItem(int slotID)
 
 void AAncientWorldCharacter::InteractWithTool(AAPInteractItemBase* interactBase)
 {
-	if (m_usingTool != nullptr) {
-		m_usingTool->StartUse(interactBase);
+	if (interactBase) {
+		if (interactBase->m_bRequireTool) {
+			if (m_usingTool != nullptr) {
+				m_usingTool->StartUse(interactBase);
+			}
+		}
+		else {
+			interactBase->Interact();
+		}
 	}
+	else {
+		if (m_usingTool != nullptr) {
+			m_usingTool->StartUse(nullptr);
+		}
+	}
+
 }
 
 void AAncientWorldCharacter::RemoveItemFromInventory(FName itemID, int _amount)

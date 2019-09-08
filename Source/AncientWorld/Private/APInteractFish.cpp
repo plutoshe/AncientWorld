@@ -79,7 +79,7 @@ void AAPInteractFish::Interact()
 {
 	Super::Interact();
 	// it is a required tool
-	if (m_requiredItemID.IsEqual(m_InteratingActor->GetCurrentItem()->ItemID)) {
+	if (m_InteratingActor && m_requiredItemID.IsEqual(m_InteratingActor->GetCurrentItem()->ItemID)) {
 		GetDamage(10);
 
 	}

@@ -34,6 +34,10 @@ AAPInteractItemBase::AAPInteractItemBase()
 	OutlineMesh->SetupAttachment(RootComponent);
 	OutlineMesh->SetVisibility(false);
 	m_bHasOutline = false;
+	m_bRequireTool = true;
+
+	m_bInteractDisabled = false;
+	m_bOneTimeInteract = false;
 }
 
 // Called when the game starts or when spawned
@@ -49,7 +53,7 @@ void AAPInteractItemBase::OnPawnEnter(UPrimitiveComponent* OverlappedComponent, 
 		AAncientWorldCharacter* characterBase = Cast<AAncientWorldCharacter>(OtherActor);
 		if (characterBase) {
 			m_InteratingActor = characterBase;
-
+			UE_LOG(LogTemp, Log, TEXT("Player enter"));
 			//SetWidgetVisibility(true);
 		}
 	}
@@ -85,7 +89,7 @@ void AAPInteractItemBase::Interact()
 
 void AAPInteractItemBase::UnInteract()
 {
-	if(!m_bInteracting) return;
+	if(m_bInteractDisabled || !m_bInteracting) return;
 	m_bInteracting = false;
 	BPUnInteract();
 }

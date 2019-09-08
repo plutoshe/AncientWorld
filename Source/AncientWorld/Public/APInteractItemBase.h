@@ -40,6 +40,8 @@ protected:
 
 
 public:
+
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -47,7 +49,14 @@ public:
 	virtual void UnInteract();
 
 	void SetWidgetVisibility(bool _show);
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+
+	UPROPERTY(EditDefaultsOnly, Category = Gameplay, BlueprintReadOnly)
+		bool m_bOneTimeInteract;
+	UPROPERTY(EditDefaultsOnly, Category = Gameplay, BlueprintReadWrite)
+		bool m_bInteractDisabled;
+	UPROPERTY(EditDefaultsOnly, Category = Gameplay)
+		bool m_bRequireTool;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Gameplay)
 		bool m_bHasOutline;
 	UFUNCTION(BlueprintImplementableEvent, Category = Gameplay)
 		void BPInteract();
