@@ -72,7 +72,7 @@ void AAPToolBase::OnCastFinish()
 void AAPToolBase::Use()
 {
 	GetWorldTimerManager().SetTimer(m_BackSwingHandle, this, &AAPToolBase::OnBackSwingFinish, m_backSwingTime, false);
-
+	BPOnUse();
 }
 
 void AAPToolBase::OnBackSwingFinish()
