@@ -16,7 +16,7 @@ FBuildingBlock* ABuildingSynchronization::GetCurrentBuildingBlock()
 {
 	if (m_currentSelectBuildingBlockID < m_buildings.Num())
 	{
-		return &m_gameStateInstance->m_buildings[m_currentSelectBuildingBlockID];
+		return &m_GameStateInstance->m_buildings[m_currentSelectBuildingBlockID];
 	}
 
 	return nullptr;
@@ -36,14 +36,14 @@ ABuildingSynchronization::ABuildingSynchronization()
 
 void ABuildingSynchronization::InitialBlockByBuildingID(ABuildingBlockActor* newBlock, int buildingId, bool setMaterial = true)
 {
-	newBlock->SetActorScale3D(m_gameStateInstance->GetModelScale());
-	newBlock->GetStaticMeshComponent()->SetStaticMesh(m_gameStateInstance->m_buildings[buildingId].m_mesh);
+	newBlock->SetActorScale3D(m_GameStateInstance->GetModelScale());
+	newBlock->GetStaticMeshComponent()->SetStaticMesh(m_GameStateInstance->m_buildings[buildingId].m_mesh);
 
 	if (setMaterial)
 	{
-		for (int i = 0; i < m_gameStateInstance->m_buildings[buildingId].m_materials.Num(); i++)
+		for (int i = 0; i < m_GameStateInstance->m_buildings[buildingId].m_materials.Num(); i++)
 		{
-			newBlock->GetStaticMeshComponent()->SetMaterial(i, m_gameStateInstance->m_buildings[buildingId].m_materials[i]);
+			newBlock->GetStaticMeshComponent()->SetMaterial(i, m_GameStateInstance->m_buildings[buildingId].m_materials[i]);
 		}
 	}
 	
@@ -54,16 +54,16 @@ void ABuildingSynchronization::InitialBlockByBuildingID(ABuildingBlockActor* new
 void ABuildingSynchronization::BeginPlay()
 {
 	Super::BeginPlay();
-	m_gameStateInstance = static_cast<UAncientWorldGameInstance*>(UGameplayStatics::GetGameInstance(GetWorld()));
+	m_GameStateInstance = static_cast<UAncientWorldGameInstance*>(UGameplayStatics::GetGameInstance(GetWorld()));
 	m_basePoint = GetActorLocation();
-	if (m_gameStateInstance != nullptr && m_gameStateInstance->m_baseStatus.Num() > 0)
+	if (m_GameStateInstance != nullptr && m_GameStateInstance->m_baseStatus.Num() > 0)
 	{
-		int32 maxZ = m_gameStateInstance->m_baseStatus[0].m_positionIndexForBase.Z;
-		int32 minZ = m_gameStateInstance->m_baseStatus[0].m_positionIndexForBase.Z;
-		for (int i = 0; i < m_gameStateInstance->m_baseStatus.Num(); i++)
+		int32 maxZ = m_GameStateInstance->m_baseStatus[0].m_positionIndexForBase.Z;
+		int32 minZ = m_GameStateInstance->m_baseStatus[0].m_positionIndexForBase.Z;
+		for (int i = 0; i < m_GameStateInstance->m_baseStatus.Num(); i++)
 		{
-			maxZ = FMath::Max(maxZ, m_gameStateInstance->m_baseStatus[i].m_positionIndexForBase.Z);
-			minZ = FMath::Min(minZ, m_gameStateInstance->m_baseStatus[i].m_positionIndexForBase.Z);
+			maxZ = FMath::Max(maxZ, m_GameStateInstance->m_baseStatus[i].m_positionIndexForBase.Z);
+			minZ = FMath::Min(minZ, m_GameStateInstance->m_baseStatus[i].m_positionIndexForBase.Z);
 		}
 		m_UndergroundConstructionStatus.Init(0, 0);
 		m_HorizontalConstructionStatus.Init(0, 0);
@@ -76,12 +76,12 @@ void ABuildingSynchronization::BeginPlay()
 			m_HorizontalConstructionStatus.Add(FLayerConstructionStatus(i));
 		}
 
-		for (int i = 0; i < m_gameStateInstance->m_baseStatus.Num(); i++)
+		for (int i = 0; i < m_GameStateInstance->m_baseStatus.Num(); i++)
 		{
 			ABuildingBlockActor* newBlock = static_cast<ABuildingBlockActor*>(GetWorld()->SpawnActor(ABuildingBlockActor::StaticClass()));
-			InitialBlockByBuildingID(newBlock, m_gameStateInstance->m_baseStatus[i].m_buildingBlockIndex);
-			newBlock->SetIndex(m_gameStateInstance->m_baseStatus[i].m_buildingBlockIndex, m_gameStateInstance->m_baseStatus[i].m_positionIndexForBase, m_gameStateInstance->m_baseStatus[i].m_direction);
-			newBlock->UpdateLocation(m_gameStateInstance, m_basePoint);
+			InitialBlockByBuildingID(newBlock, m_GameStateInstance->m_baseStatus[i].m_buildingBlockIndex);
+			newBlock->SetIndex(m_GameStateInstance->m_baseStatus[i].m_buildingBlockIndex, m_GameStateInstance->m_baseStatus[i].m_positionIndexForBase, m_GameStateInstance->m_baseStatus[i].m_direction);
+			newBlock->UpdateLocation(m_GameStateInstance, m_basePoint);
 			newBlock->UpdateRotation();
 			UpdateBuildingStatus(newBlock, true);
 			m_buildings.Add(newBlock);
@@ -100,9 +100,9 @@ void ABuildingSynchronization::UpdateBuildingStatus(ABuildingBlockActor* block, 
 		value = 1;
 	}
 
-	for (int i = 0; i < m_gameStateInstance->m_buildings[block->m_buildingIndex].m_occupations.Num(); i++)
+	for (int i = 0; i < m_GameStateInstance->m_buildings[block->m_buildingIndex].m_occupations.Num(); i++)
 	{
-		FIntVector currentOccupation = block->m_positionIndex + DirectionRotationUtility::GetRealOccupation(m_gameStateInstance->m_buildings[block->m_buildingIndex].m_occupations[i], block->m_directionID);
+		FIntVector currentOccupation = block->m_positionIndex + DirectionRotationUtility::GetRealOccupation(m_GameStateInstance->m_buildings[block->m_buildingIndex].m_occupations[i], block->m_directionID);
 		if (currentOccupation.Z >= 0)
 		{
 			for (int j = m_HorizontalConstructionStatus.Num(); j <= currentOccupation.Z; j++)
@@ -136,11 +136,11 @@ void ABuildingSynchronization::ConfirmBuilding(ABuildingBlockActor* newBlock)
 	//ABuildingBlockActor *newBlock = static_cast<ABuildingBlockActor*>(GetWorld()->SpawnActor(ABuildingBlockActor::StaticClass()));
 	InitialBlockByBuildingID(newBlock, GetCurrentBuildingBlockID());
 	newBlock->SetIndex(GetCurrentBuildingBlockID(), m_select, newBlock->m_directionID);
-	newBlock->UpdateLocation(m_gameStateInstance, m_basePoint);
+	newBlock->UpdateLocation(m_GameStateInstance, m_basePoint);
 	newBlock->UpdateRotation();
 	UpdateBuildingStatus(newBlock, true);
 	m_buildings.Add(newBlock);
-	m_gameStateInstance->m_baseStatus.Add(FBuildingStatus(GetCurrentBuildingBlockID(), m_select, newBlock->m_directionID));
+	m_GameStateInstance->m_baseStatus.Add(FBuildingStatus(GetCurrentBuildingBlockID(), m_select, newBlock->m_directionID));
 
 }
 
@@ -164,12 +164,12 @@ int ABuildingSynchronization::GetBottomIndexZ()
 
 float ABuildingSynchronization::GetTopZ()
 {
-	return m_gameStateInstance->GetBuildingPositoinFromIndex(m_basePoint, FIntVector(0, 0, GetTopIndexZ()) , 0, 0).Z;
+	return m_GameStateInstance->GetBuildingPositoinFromIndex(m_basePoint, FIntVector(0, 0, GetTopIndexZ()) , 0, 0).Z;
 }
 
 float ABuildingSynchronization::GetBottomZ()
 {
-	return m_gameStateInstance->GetBuildingPositoinFromIndex(m_basePoint, FIntVector(0, 0, GetBottomIndexZ()), 0, 0).Z;
+	return m_GameStateInstance->GetBuildingPositoinFromIndex(m_basePoint, FIntVector(0, 0, GetBottomIndexZ()), 0, 0).Z;
 }
 
 FVector ABuildingSynchronization::ReturnSelectedPosition(FVector mousePosition, int direction)
@@ -184,7 +184,7 @@ FVector ABuildingSynchronization::ReturnSelectedPosition(FVector mousePosition, 
 			if (!m_HorizontalConstructionStatus[topZ].GetLayerStatus(i, j))
 			{
 
-				FVector select_position = m_gameStateInstance->GetBuildingPositoinFromIndex(m_basePoint, FIntVector(i, j, topZ), GetCurrentBuildingBlockID(), direction);
+				FVector select_position = m_GameStateInstance->GetBuildingPositoinFromIndex(m_basePoint, FIntVector(i, j, topZ), GetCurrentBuildingBlockID(), direction);
 				if (FVector::Distance(select_position, mousePosition) < minD)
 				{
 					minD = FVector::Distance(select_position, mousePosition);
@@ -194,7 +194,7 @@ FVector ABuildingSynchronization::ReturnSelectedPosition(FVector mousePosition, 
 			if (!m_UndergroundConstructionStatus[bottomZ].GetLayerStatus(i, j))
 			{
 
-				FVector select_position = m_gameStateInstance->GetBuildingPositoinFromIndex(m_basePoint, FIntVector(i, j, -bottomZ - 1), GetCurrentBuildingBlockID(), direction);
+				FVector select_position = m_GameStateInstance->GetBuildingPositoinFromIndex(m_basePoint, FIntVector(i, j, -bottomZ - 1), GetCurrentBuildingBlockID(), direction);
 				if (FVector::Distance(select_position, mousePosition) < minD)
 				{
 					minD = FVector::Distance(select_position, mousePosition);
@@ -204,7 +204,7 @@ FVector ABuildingSynchronization::ReturnSelectedPosition(FVector mousePosition, 
 		}
 	}
 	
-	return m_gameStateInstance->GetBuildingPositoinFromIndex(m_basePoint, m_select, GetCurrentBuildingBlockID(), direction);
+	return m_GameStateInstance->GetBuildingPositoinFromIndex(m_basePoint, m_select, GetCurrentBuildingBlockID(), direction);
 
 }
 

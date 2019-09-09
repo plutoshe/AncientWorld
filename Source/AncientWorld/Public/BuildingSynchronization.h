@@ -68,7 +68,7 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-	class UAncientWorldGameInstance* m_gameStateInstance;
+	class UAncientWorldGameInstance* m_GameStateInstance;
 	TArray<class ABuildingBlockActor*> m_buildings;
 	FVector m_basePoint;
 

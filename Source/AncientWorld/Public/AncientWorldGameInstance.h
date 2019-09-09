@@ -13,7 +13,7 @@
 static class DirectionRotationUtility
 {
 public:
-	static const int32 m_directionOffset[4][2];
+	static const int32 m_directionOffset[4][3];
 	static FIntVector GetRealOccupation(FIntVector occupation, int i) {
 		return FIntVector(
 			occupation.X * m_directionOffset[i][0],
@@ -22,15 +22,7 @@ public:
 	}
 	static FRotator GetRotationByDirectionID(int directionID)
 	{
-		switch (directionID)
-		{
-		case 0: return FRotator(0, 0, 0); break;
-		case 1: return FRotator(0, 90, 0); break;
-		case 2: return FRotator(0, 180, 0); break;
-		case 3: return FRotator(0, 270, 0); break;
-
-		}
-		return FRotator(0, 0, 0);
+		return FRotator(0, m_directionOffset[directionID][2], 0);
 	}
 };
 
@@ -98,6 +90,9 @@ public:
 	FTransform m_StoredPlayerTransfrom;
 	FVector GetModelScale();
 	FVector GetBuildingLayerLength();
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		FVector m_PivotIndexOffset;
+
 	FVector GetBuildingPositoinFromIndex(FVector m_basePoint, FIntVector index, int buildingIndex, int directionID)
 	{
 		FVector result = m_basePoint + FVector(index) * m_BaseLayerLength;
@@ -105,6 +100,8 @@ public:
 		result.Y += (DirectionRotationUtility::m_directionOffset[directionID][1] < 0) * m_BaseLayerLength.Y;
 		result.X += m_buildings[buildingIndex].m_maxX * m_BaseLayerLength.X;
 		result.Y += m_buildings[buildingIndex].m_maxY * m_BaseLayerLength.Y;
+		result.X += m_PivotIndexOffset.X * m_BaseLayerLength.X;
+		result.Y += m_PivotIndexOffset.Y * m_BaseLayerLength.Y;
 		return result;
 	}
 };

@@ -25,52 +25,68 @@
 ABuildingSystemPawn::ABuildingSystemPawn()
 {
 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+
+	
+
 	PrimaryActorTick.bCanEverTick = true;
-	lookPoint = CreateDefaultSubobject<USceneComponent>(TEXT("LookPoint"));
-	lookPoint->SetupAttachment(RootComponent);
+	OriginPoint = CreateDefaultSubobject<USceneComponent>(TEXT("OriginPoint"));
+	OriginPoint->SetupAttachment(RootComponent);
 
-	CameraBoon = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-	CameraBoon->SetupAttachment(lookPoint);
-	//CameraBoon->bAbsoluteRotation = true; // Don't want arm to rotate when character does
-	//CameraBoon->TargetArmLength = 800.f;
-	//CameraBoon->RelativeRotation = FRotator(-60.f, 0.f, 0.f);
-	CameraBoon->bDoCollisionTest = false; // Don't want to pull camera in when it collides with level
-	CameraBoon->bInheritPitch = false;
-	CameraBoon->bInheritRoll = false;
-	CameraBoon->bInheritYaw = false;
-	m_MoveRemainingTime = 0;
-	m_MoveTimeSpan = 0;
+	TopCameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("TopCameraBoon"));
+	TopCameraBoom->SetupAttachment(OriginPoint);
+	TopCameraBoom->bDoCollisionTest = false;
+	TopCameraBoom->bInheritPitch = false;
+	TopCameraBoom->bInheritRoll = false;
+	TopCameraBoom->bInheritYaw = false;
 
-	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("TopDownCamera"));
-	CameraComp->SetupAttachment(CameraBoon, USpringArmComponent::SocketName);
-	CameraComp->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
+	BottomCameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("BottomCameraBoon"));
+	BottomCameraBoom->SetupAttachment(OriginPoint);
+	BottomCameraBoom->bDoCollisionTest = false;
+	BottomCameraBoom->bInheritPitch = false;
+	BottomCameraBoom->bInheritRoll = false;
+	BottomCameraBoom->bInheritYaw = false;
+
+	TopCameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("TopCameraComp"));
+	TopCameraComp->SetupAttachment(TopCameraBoom, USpringArmComponent::SocketName);
+	TopCameraComp->bUsePawnControlRotation = false;
+
+	BottomCameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("BottomCameraComp"));
+	BottomCameraComp->SetupAttachment(BottomCameraBoom, USpringArmComponent::SocketName);
+	BottomCameraComp->bUsePawnControlRotation = false;
 }
 
 // Called when the game starts or when spawned
 void ABuildingSystemPawn::BeginPlay()
 {
 	Super::BeginPlay();
-	m_gameStateInstance = static_cast<UAncientWorldGameInstance*>(UGameplayStatics::GetGameInstance(GetWorld()));
-	
-	m_PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	m_cameraRotationInitialPoint = CameraBoon->RelativeLocation;
-	m_intialPoint = GetActorLocation();
-	m_cameraAngle = 0.f;
-	m_isIntialCamera = false;
 
+	TopCameraComp->SetActive(true);
+	BottomCameraComp->SetActive(false);
+
+	m_GameStateInstance = static_cast<UAncientWorldGameInstance*>(UGameplayStatics::GetGameInstance(GetWorld()));
+	m_CameraRotationInitialTopPoint = TopCameraBoom->RelativeLocation;
+	m_CameraRotationInitialBottomPoint = BottomCameraBoom->RelativeLocation;
+
+	m_PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	
+	m_CameraAngle = 0.f;
+	m_isIntialCamera = false;
 
 }
 
-void ABuildingSystemPawn::MoveBuildingCamera(float axis)
+void ABuildingSystemPawn::RotateBuildingCamera(float axis)
 {
-	if (this->m_MoveRemainingTime <= 0 && m_buildingsystem != nullptr)
+	if (m_BuildingSystem != nullptr)
 	{
-		m_cameraAngle += axis;
-		FRotator rot(0, m_cameraAngle, 0);
-		//auto result = 
-		CameraBoon->RelativeLocation = rot.RotateVector(m_cameraRotationInitialPoint);
-		//SetActorLocation(FVector(result.X, result.Y, GetActorLocation().Z));
-		CameraBoon->RelativeRotation = UKismetMathLibrary::FindLookAtRotation(CameraBoon->RelativeLocation, FVector(0,0,0));
+		m_CameraAngle += axis;
+		FRotator rot(0, m_CameraAngle, 0);
+		FHitResult tmp;
+		TopCameraBoom->K2_SetRelativeLocation(rot.RotateVector(m_CameraRotationInitialTopPoint), false, tmp, true);
+		TopCameraBoom->RelativeRotation = UKismetMathLibrary::FindLookAtRotation(TopCameraBoom->RelativeLocation, FVector(0,0,0));
+
+		BottomCameraBoom->K2_SetRelativeLocation(rot.RotateVector(m_CameraRotationInitialBottomPoint), false, tmp, true);
+		BottomCameraBoom->RelativeRotation = UKismetMathLibrary::FindLookAtRotation(TopCameraBoom->RelativeLocation, FVector(0, 0, 0));
+
 	}
 }
 
@@ -78,7 +94,6 @@ void ABuildingSystemPawn::MoveBuildingCamera(float axis)
 void ABuildingSystemPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-	PlayerInputComponent->BindAction("ChangeToBuildingSystem", IE_Pressed, this, &ABuildingSystemPawn::ChangeToBuildingSystem);
 	PlayerInputComponent->BindAction("MoveUp", IE_Pressed, this, &ABuildingSystemPawn::MoveUp);
 	PlayerInputComponent->BindAction("MoveDown", IE_Pressed, this, &ABuildingSystemPawn::MoveDown);
 	PlayerInputComponent->BindAction("RoatetForward", IE_Pressed, this, &ABuildingSystemPawn::RoatetForward);
@@ -86,7 +101,7 @@ void ABuildingSystemPawn::SetupPlayerInputComponent(UInputComponent* PlayerInput
 	PlayerInputComponent->BindAction("BuildAction", IE_Pressed, this, &ABuildingSystemPawn::BuildAction);
 	PlayerInputComponent->BindAction("BuildComplete", IE_Pressed, this, &ABuildingSystemPawn::BuildComplete);
 	PlayerInputComponent->BindAction("BuildCancellation", IE_Pressed, this, &ABuildingSystemPawn::BuildCancellation);
-	PlayerInputComponent->BindAxis("MoveRight", this, &ABuildingSystemPawn::MoveBuildingCamera);
+	PlayerInputComponent->BindAxis("MoveRight", this, &ABuildingSystemPawn::RotateBuildingCamera);
 }
 
 void ABuildingSystemPawn::RoatetForward()
@@ -108,13 +123,13 @@ void ABuildingSystemPawn::RotateBackword()
 
 void ABuildingSystemPawn::BuildAction()
 {
-	if (m_buildingsystem != nullptr)
+	if (m_BuildingSystem != nullptr)
 	{
 		m_CurrentBuildingBlock = static_cast<ABuildingBlockActor*>(GetWorld()->SpawnActor(ABuildingBlockActor::StaticClass()));
-		m_buildingsystem->InitialBlockByBuildingID(m_CurrentBuildingBlock, m_buildingsystem->GetCurrentBuildingBlockID(), false);
+		m_BuildingSystem->InitialBlockByBuildingID(m_CurrentBuildingBlock, m_BuildingSystem->GetCurrentBuildingBlockID(), false);
 		// for current build block
 		m_CurrentBuildingBlock->SetDirectionID(0);
-		m_CurrentBuildingBlock->GetStaticMeshComponent()->SetMaterial(0, m_gameStateInstance->m_materialOnBuild);
+		m_CurrentBuildingBlock->GetStaticMeshComponent()->SetMaterial(0, m_GameStateInstance->m_materialOnBuild);
 	}
 
 }
@@ -122,57 +137,50 @@ void ABuildingSystemPawn::BuildAction()
 void ABuildingSystemPawn::BuildComplete()
 {
 	UE_LOG(LogTemp, Log, TEXT("BuildComplete"));
-	if (m_buildingsystem != nullptr && m_CurrentBuildingBlock != nullptr)
+	if (m_BuildingSystem != nullptr && m_CurrentBuildingBlock != nullptr)
 	{
-		m_buildingsystem->ConfirmBuilding(m_CurrentBuildingBlock);
+		m_BuildingSystem->ConfirmBuilding(m_CurrentBuildingBlock);
 		m_CurrentBuildingBlock = nullptr;
 	}
 }
 
 void ABuildingSystemPawn::BuildCancellation()
 {
-	if (m_buildingsystem != nullptr && m_CurrentBuildingBlock != nullptr)
+	if (m_BuildingSystem != nullptr && m_CurrentBuildingBlock != nullptr)
 	{
 		UE_LOG(LogTemp, Log, TEXT("BuildCancellation"));
 		m_CurrentBuildingBlock->K2_DestroyActor();
 		m_CurrentBuildingBlock = nullptr;
 	}
 }
-void ABuildingSystemPawn::ChangeToBuildingSystem()
-{
-	UE_LOG(LogTemp, Log, TEXT("hahaha"));
-	
-}
 
 void ABuildingSystemPawn::MoveForBuilding(int direction)
 {
-	this->m_MoveCameraSrcZ = this->GetActorLocation().Z;
-	this->m_MoveTimeSpan = 0.5f;
-	this->m_MoveRemainingTime = 0.5f;
 	if (direction > 0)
 	{
-		this->m_MoveCameraDstZ = m_buildingsystem->GetTopZ();
+		this->m_MoveCameraDstZ = m_BuildingSystem->GetTopZ();
+		m_IsTopCamera = true;
 	}
 	else
 	{
-		this->m_MoveCameraDstZ = m_buildingsystem->GetBottomZ();
+		this->m_MoveCameraDstZ = m_BuildingSystem->GetBottomZ();
+		m_IsTopCamera = false;
+		
 	}
+	TopCameraComp->SetActive(m_IsTopCamera);
+	BottomCameraComp->SetActive(!m_IsTopCamera);
+	FVector currentLocation = this->GetActorLocation();
+	this->SetActorLocation(FVector(currentLocation.X, currentLocation.Y, this->m_MoveCameraDstZ));
 }
 
 void ABuildingSystemPawn::MoveUp()
 {
-	if (this->m_MoveRemainingTime <= 0)
-	{
-		MoveForBuilding(1);
-	}
+	MoveForBuilding(1);
 }
 
 void ABuildingSystemPawn::MoveDown()
 {
-	if (this->m_MoveRemainingTime <= 0)
-	{
-		MoveForBuilding(-1);
-	}
+	MoveForBuilding(-1);
 }
 
 void ABuildingSystemPawn::Tick(float DeltaTime)
@@ -182,50 +190,37 @@ void ABuildingSystemPawn::Tick(float DeltaTime)
 	if (!m_isIntialCamera)
 	{
 		m_isIntialCamera = true;
-		m_MoveCameraDstZ = m_buildingsystem->GetTopZ();
-		FVector currentLocation = this->GetActorLocation();
-		this->SetActorLocation(FVector(currentLocation.X, currentLocation.Y, this->m_MoveCameraSrcZ));
+		MoveUp();
 	}
-	if (this->m_MoveRemainingTime > 0)
+	//DrawDebugLine(GetWorld(), TopCameraBoom->K2_GetComponentLocation(), GetActorLocation(), FColor::Blue, true);
+	//DrawDebugLine(GetWorld(), TopCameraComp->relative, GetActorLocation(), FColor::Green, true);
+	if (m_BuildingSystem != nullptr && m_CurrentBuildingBlock != nullptr && m_PlayerController != nullptr)
 	{
-		this->m_MoveRemainingTime = FMath::Max(this->m_MoveRemainingTime - DeltaTime, 0.0f);
-		FVector currentLocation = this->GetActorLocation();
-		//this->SetActorLocation(FVector(currentLocation.X, currentLocation.Y, FMath::Lerp(this->m_MoveCameraSrcZ, this->m_MoveCameraDstZ, (this->m_MoveTimeSpan - this->m_MoveRemainingTime) / this->m_MoveTimeSpan)));
-		this->SetActorLocation(FVector(currentLocation.X, currentLocation.Y, FMath::Lerp(this->m_MoveCameraSrcZ, this->m_MoveCameraDstZ, (this->m_MoveTimeSpan - this->m_MoveRemainingTime) / this->m_MoveTimeSpan)));
-	}
+		FVector mouseStartPosition, mouseDirection;
+		m_PlayerController->DeprojectMousePositionToWorld(mouseStartPosition, mouseDirection);
 
-	FVector wp, wd;
-	if (m_PlayerController != nullptr)
-	{
-		m_PlayerController->DeprojectMousePositionToWorld(wp, wd);
-		
-	}
-	
-	if (m_buildingsystem != nullptr && m_CurrentBuildingBlock != nullptr)
-	{
-		DrawDebugLine(GetWorld(), wp, (GetActorLocation().Z - wp.Z) / wd.Z * wd + wp, FColor::Red, true);
-		UE_LOG(LogTemp, Log, TEXT("Is mouse pressed %s, %s, %s"), (*((GetActorLocation().Z - wp.Z) / wd.Z * wd + wp).ToString()), *(wp.ToString()), *(wd.ToString()));
-		m_CurrentBuildingBlock->SetActorLocation(m_buildingsystem->ReturnSelectedPosition((GetActorLocation().Z - wp.Z) / wd.Z * wd + wp, m_CurrentBuildingBlock->m_directionID));
+		m_CurrentBuildingBlock->SetActorLocation(m_BuildingSystem->ReturnSelectedPosition((GetActorLocation().Z +  - mouseStartPosition.Z) / mouseDirection.Z * mouseDirection + mouseStartPosition, m_CurrentBuildingBlock->m_directionID));
+		//DrawDebugLine(GetWorld(), mouseStartPosition, (GetActorLocation().Z - mouseStartPosition.Z) / mouseDirection.Z * mouseDirection + mouseStartPosition, FColor::Red, true);
+		//UE_LOG(LogTemp, Log, TEXT("Is mouse pressed %s, %s, %s"), (*((GetActorLocation().Z - mouseStartPosition.Z) / mouseDirection.Z * mouseDirection + mouseStartPosition).ToString()), *(mouseStartPosition.ToString()), *(mouseDirection.ToString()));
 	}
 
 
-
+	// Rotate Camera by Mouse X axis
 	if (UGameplayStatics::GetPlayerController(GetWorld(), 0)->IsInputKeyDown(EKeys::LeftMouseButton))
 	{
-		UE_LOG(LogTemp, Log, TEXT("Is mouse pressed"));
 		float mouseX, mouseY;
 		UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetMousePosition(mouseX, mouseY);
 		
-		if (m_IsMoveCamera)
+		if (m_IsRotateCamera)
 		{
-			MoveBuildingCamera((mouseX - m_lastMouseX) * m_inputSensitivity);
+			RotateBuildingCamera((mouseX - m_LastMouseX) * m_InputSensitivity);
 		}
-		m_lastMouseX = mouseX;
-		m_IsMoveCamera = true;
+		m_LastMouseX = mouseX;
+		m_IsRotateCamera = true;
 	}
 	else
 	{
-		m_IsMoveCamera = false;
+		m_IsRotateCamera = false;
 	}
 	
 }

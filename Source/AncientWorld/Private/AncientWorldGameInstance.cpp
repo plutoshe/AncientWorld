@@ -2,7 +2,7 @@
 
 
 #include "AncientWorldGameInstance.h"
-const int32 DirectionRotationUtility::m_directionOffset[4][2] = { {1,1},{-1,1 } ,{-1,-1 } ,{1,-1} };
+const int32 DirectionRotationUtility::m_directionOffset[4][3] = { {1, 1, 0}, {-1, 1, 90} ,{-1, -1, 180} ,{1, -1, 270} };
 
 UAncientWorldGameInstance::UAncientWorldGameInstance()
 {
