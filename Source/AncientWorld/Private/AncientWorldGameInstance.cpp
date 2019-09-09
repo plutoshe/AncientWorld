@@ -2,13 +2,13 @@
 
 
 #include "AncientWorldGameInstance.h"
-const int32 DirectionRotationUtility::m_directionOffset[4][3] = { {1, 1, 0}, {-1, 1, 90} ,{-1, -1, 180} ,{1, -1, 270} };
+const int32 DirectionRotationUtility::m_directionAngle[4] = { 0, 90, 180, 270 };
 
 UAncientWorldGameInstance::UAncientWorldGameInstance()
 {
-	for (int i = 0; i < m_buildings.Num(); i++)
+	for (int i = 0; i < m_BuildingEntities.Num(); i++)
 	{
-		m_buildings[i].UpdateMaxXY();
+		m_BuildingEntities[i].UpdateMaxXY();
 	}
 }
 

@@ -6,23 +6,44 @@
 #include "Engine/GameInstance.h"
 #include "AncientWorldGameInstance.generated.h"
 
-/**
- * 
- */
-
 static class DirectionRotationUtility
 {
 public:
-	static const int32 m_directionOffset[4][3];
+	static const int32 m_directionAngle[4];
 	static FIntVector GetRealOccupation(FIntVector occupation, int i) {
+		switch (i)
+		{
+		case 0:
+			return FIntVector(
+				occupation.X,
+				occupation.Y,
+				occupation.Z);
+		case 1:
+			return FIntVector(
+				-occupation.Y,
+				occupation.X,
+				occupation.Z);
+		case 2:
+			return FIntVector(
+				occupation.X * -1,
+				occupation.Y * -1,
+				occupation.Z);
+
+		case 3:
+			return FIntVector(
+				occupation.Y,
+				-occupation.X,
+				occupation.Z);
+		}
 		return FIntVector(
-			occupation.X * m_directionOffset[i][0],
-			occupation.Y * m_directionOffset[i][1],
+			occupation.X,
+			occupation.Y,
 			occupation.Z);
 	}
+	
 	static FRotator GetRotationByDirectionID(int directionID)
 	{
-		return FRotator(0, m_directionOffset[directionID][2], 0);
+		return FRotator(0, m_directionAngle[directionID], 0);
 	}
 };
 
@@ -48,6 +69,21 @@ public:
 			m_maxX = FMath::Max(m_occupations[i].X, m_maxX);
 			m_maxY = FMath::Max(m_occupations[i].Y, m_maxY);
 		}
+	}
+	FVector GetMaxOffset(int directionID)
+	{
+		switch (directionID)
+		{
+		case 0:
+			return FVector(0, 0, 0);
+		case 1:
+			return FVector(m_maxY + 1, 0, 0);
+		case 2:
+			return FVector(m_maxX + 1, m_maxY + 1, 0);
+		case 3:
+			return FVector(0, m_maxX + 1, 0);
+		}
+		return FVector(0, 0, 0);
 	}
 };
 
@@ -75,13 +111,13 @@ class ANCIENTWORLD_API UAncientWorldGameInstance : public UGameInstance
 public:
 	UAncientWorldGameInstance();
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		TArray<FBuildingBlock> m_buildings;
+		TArray<FBuildingBlock> m_BuildingEntities;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		class UMaterial* m_materialOnBuildSuccess;
+		class UMaterial* m_MaterialOnBuildSuccess;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		class UMaterial* m_materialOnBuildFailure;
+		class UMaterial* m_MaterialOnBuildFailure;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		TArray<FBuildingStatus> m_baseStatus;
+		TArray<FBuildingStatus> m_BaseBuildingStatus;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FVector m_BasePoint;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -98,12 +134,24 @@ public:
 	FVector GetBuildingPositoinFromIndex(FVector m_basePoint, FIntVector index, int buildingIndex, int directionID)
 	{
 		FVector result = m_basePoint + FVector(index) * m_BaseLayerLength;
-		result.X += (DirectionRotationUtility::m_directionOffset[directionID][0] < 0) * m_BaseLayerLength.X;
-		result.Y += (DirectionRotationUtility::m_directionOffset[directionID][1] < 0) * m_BaseLayerLength.Y;
-		result.X += m_buildings[buildingIndex].m_maxX * m_BaseLayerLength.X;
-		result.Y += m_buildings[buildingIndex].m_maxY * m_BaseLayerLength.Y;
+		//result.X += (DirectionRotationUtility::m_directionOffset[directionID][0] < 0) * m_BaseLayerLength.X;
+		//result.Y += (DirectionRotationUtility::m_directionOffset[directionID][1] < 0) * m_BaseLayerLength.Y;
+		result.X += m_BuildingEntities[buildingIndex].GetMaxOffset(directionID).X * m_BaseLayerLength.X;
+		result.Y += m_BuildingEntities[buildingIndex].GetMaxOffset(directionID).Y * m_BaseLayerLength.Y;
+		UE_LOG(LogTemp, Log, TEXT("OFFSET: %s"), *(m_BuildingEntities[buildingIndex].GetMaxOffset(directionID).ToString()));
 		result.X += m_PivotIndexOffset.X * m_BaseLayerLength.X;
 		result.Y += m_PivotIndexOffset.Y * m_BaseLayerLength.Y;
+		return result;
+	}
+
+	FVector GetPositoinFromIndex(FVector m_basePoint, FIntVector index, int buildingIndex, int directionID)
+	{
+		FVector result = m_basePoint + FVector(index) * m_BaseLayerLength;
+		result.X += m_PivotIndexOffset.X * m_BaseLayerLength.X;
+		result.Y += m_PivotIndexOffset.Y * m_BaseLayerLength.Y;
+		// for mouse pivot
+		result.X += 0.5 * m_BaseLayerLength.X;
+		result.Y += 0.5 * m_BaseLayerLength.Y;
 		return result;
 	}
 };

@@ -123,7 +123,7 @@ void ABuildingSystemPawn::RotateBackword()
 
 void ABuildingSystemPawn::BuildAction()
 {
-	if (m_BuildingSystem != nullptr)
+	if (m_BuildingSystem != nullptr && m_CurrentBuildingBlock == nullptr)
 	{
 		m_CurrentBuildingBlock = static_cast<ABuildingBlockActor*>(GetWorld()->SpawnActor(ABuildingBlockActor::StaticClass()));
 		m_BuildingSystem->InitialBlockByBuildingID(m_CurrentBuildingBlock, m_BuildingSystem->GetBuildingBlockCurrentBuildingEntityID(), false);
@@ -239,5 +239,8 @@ void ABuildingSystemPawn::Tick(float DeltaTime)
 	UpdateCamera();
 }
 
-
+void ABuildingSystemPawn::ChangeCurrentBuildingBlockEntityID(int id)
+{
+	m_BuildingSystem->SetBuildingBlockCurrentBuildingEntityID(id);
+}
 

@@ -70,7 +70,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	class UAncientWorldGameInstance* m_GameStateInstance;
-	TArray<class ABuildingBlockActor*> m_buildings;
+	TArray<class ABuildingBlockActor*> m_BuildingEntities;
 	FVector m_basePoint;
 
 	
@@ -80,7 +80,7 @@ public:
 
 	struct FBuildingBlock* GetCurrentBuildingBlock();
 	int GetBuildingBlockCurrentBuildingEntityID();
-
+	void SetBuildingBlockCurrentBuildingEntityID(int id);
 	// Building Block Attributes:
 	// 1. building entity
 	// 2. building index position

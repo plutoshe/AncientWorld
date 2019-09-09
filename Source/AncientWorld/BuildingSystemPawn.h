@@ -15,8 +15,10 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	UFUNCTION(BlueprintCallable, Category = "MyCategory")
+	UFUNCTION(BlueprintCallable, Category = "BuilidingSystem")
 		void BuildCancellation();
+	UFUNCTION(BlueprintCallable, Category = "BuilidingSystem")
+		void ChangeCurrentBuildingBlockEntityID(int id);
 	
 	void BuildAction();
 	void BuildComplete();
