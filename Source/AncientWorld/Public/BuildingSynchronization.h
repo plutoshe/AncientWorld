@@ -53,13 +53,14 @@ public:
 	// Sets default values for this actor's properties
 	ABuildingSynchronization();
 	void ConfirmBuilding(class ABuildingBlockActor* newBlock);
-	FVector ReturnSelectedPosition(FVector mousePosition, int direction);
+	FIntVector ReturnSelectedIndexPosition(FVector mousePosition, int direction);
 	void InitialBlockByBuildingID(class ABuildingBlockActor* newBlock, int buildingId, bool setMaterial);
 	void UpdateBuildingStatus(ABuildingBlockActor* block, bool isAddition);
 	int GetTopIndexZ();
 	int GetBottomIndexZ();
 	float GetTopZ();
 	float GetBottomZ();
+	bool BuildingAvailability(ABuildingBlockActor& block);
 
 protected:
 	// Called when the game starts or when spawned
@@ -72,12 +73,19 @@ public:
 	TArray<class ABuildingBlockActor*> m_buildings;
 	FVector m_basePoint;
 
-	FIntVector m_select;
+	
 	TArray<FLayerConstructionStatus> m_UndergroundConstructionStatus;
 	TArray<FLayerConstructionStatus> m_HorizontalConstructionStatus;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		int m_currentSelectBuildingBlockID;
+	
 
 	struct FBuildingBlock* GetCurrentBuildingBlock();
-	int GetCurrentBuildingBlockID();
+	int GetBuildingBlockCurrentBuildingEntityID();
+
+	// Building Block Attributes:
+	// 1. building entity
+	// 2. building index position
+	// 3. rotation direction stored in the building block
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		int m_BuildingBlockCurrentBuildingEntityID;
+	FIntVector m_BuildingBlockCurrentIndexPosition;
 };

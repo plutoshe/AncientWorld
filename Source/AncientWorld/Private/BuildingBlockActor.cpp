@@ -25,36 +25,47 @@ void ABuildingBlockActor::Tick(float DeltaTime)
 
 }
 
-void ABuildingBlockActor::SetIndex(int buildingIndex, FIntVector positionIndex, int directionID)
+void ABuildingBlockActor::SetIndex(int buildingEntityIndex, FIntVector indexPosition, int directionID)
 {
-	m_buildingIndex = buildingIndex;
-	m_positionIndex = positionIndex;
-	m_directionID = directionID;
+	m_BuildingEntityId = buildingEntityIndex;
+	m_IndexPosition = indexPosition;
+	m_DirectionID = directionID;
 }
 
 void ABuildingBlockActor::UpdateLocation(class UAncientWorldGameInstance* gameinstance, FVector m_basePoint)
 {
-	SetActorLocation(gameinstance->GetBuildingPositoinFromIndex(m_basePoint, m_positionIndex, m_buildingIndex, m_directionID));
+	SetActorLocation(gameinstance->GetBuildingPositoinFromIndex(m_basePoint, m_IndexPosition, m_BuildingEntityId, m_DirectionID));
 	
 }
 
 void ABuildingBlockActor::UpdateRotation()
 {
-	SetActorRotation(DirectionRotationUtility::GetRotationByDirectionID(m_directionID));
+	SetActorRotation(DirectionRotationUtility::GetRotationByDirectionID(m_DirectionID));
 }
 
 void ABuildingBlockActor::UpdateDirectionIDOffset(int offset)
 {
-	m_directionID += offset;
-	if (m_directionID < 0)
-		m_directionID += 4;
-	m_directionID %= 4;
+	m_DirectionID += offset;
+	if (m_DirectionID < 0)
+		m_DirectionID += 4;
+	m_DirectionID %= 4;
 	UpdateRotation();
 }
 
-void ABuildingBlockActor::SetDirectionID(int id)
+void ABuildingBlockActor::SetDirectionID(int directionID)
 {
-	m_directionID = id;
+	m_DirectionID = directionID;
 	UpdateRotation();
 }
+
+void ABuildingBlockActor::SetBuildingEntityIndex(int buildingEntityIndex)
+{
+	m_BuildingEntityId = buildingEntityIndex;
+}
+
+void ABuildingBlockActor::SetIndexPosition(FIntVector indexPosition)
+{
+	m_IndexPosition = indexPosition;
+}
+
 

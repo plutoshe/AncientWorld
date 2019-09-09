@@ -26,6 +26,8 @@ public:
 	void RotateBuildingCamera(float axis);
 	void RoatetForward();
 	void RotateBackword();
+	void UpdateCamera();
+	void UpdateCurrentBuildingBlock();
 
 	ABuildingSystemPawn();
 

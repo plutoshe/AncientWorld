@@ -14,17 +14,17 @@
 
 FBuildingBlock* ABuildingSynchronization::GetCurrentBuildingBlock()
 {
-	if (m_currentSelectBuildingBlockID < m_buildings.Num())
+	if (m_BuildingBlockCurrentBuildingEntityID < m_buildings.Num())
 	{
-		return &m_GameStateInstance->m_buildings[m_currentSelectBuildingBlockID];
+		return &m_GameStateInstance->m_buildings[m_BuildingBlockCurrentBuildingEntityID];
 	}
 
 	return nullptr;
 }
 
-int ABuildingSynchronization::GetCurrentBuildingBlockID()
+int ABuildingSynchronization::GetBuildingBlockCurrentBuildingEntityID()
 {
-	return m_currentSelectBuildingBlockID;
+	return m_BuildingBlockCurrentBuildingEntityID;
 }
 // Sets default values
 ABuildingSynchronization::ABuildingSynchronization()
@@ -100,9 +100,9 @@ void ABuildingSynchronization::UpdateBuildingStatus(ABuildingBlockActor* block, 
 		value = 1;
 	}
 
-	for (int i = 0; i < m_GameStateInstance->m_buildings[block->m_buildingIndex].m_occupations.Num(); i++)
+	for (int i = 0; i < m_GameStateInstance->m_buildings[block->m_BuildingEntityId].m_occupations.Num(); i++)
 	{
-		FIntVector currentOccupation = block->m_positionIndex + DirectionRotationUtility::GetRealOccupation(m_GameStateInstance->m_buildings[block->m_buildingIndex].m_occupations[i], block->m_directionID);
+		FIntVector currentOccupation = block->m_IndexPosition + DirectionRotationUtility::GetRealOccupation(m_GameStateInstance->m_buildings[block->m_BuildingEntityId].m_occupations[i], block->m_DirectionID);
 		if (currentOccupation.Z >= 0)
 		{
 			for (int j = m_HorizontalConstructionStatus.Num(); j <= currentOccupation.Z; j++)
@@ -134,13 +134,13 @@ void ABuildingSynchronization::Tick(float DeltaTime)
 void ABuildingSynchronization::ConfirmBuilding(ABuildingBlockActor* newBlock)
 {
 	//ABuildingBlockActor *newBlock = static_cast<ABuildingBlockActor*>(GetWorld()->SpawnActor(ABuildingBlockActor::StaticClass()));
-	InitialBlockByBuildingID(newBlock, GetCurrentBuildingBlockID());
-	newBlock->SetIndex(GetCurrentBuildingBlockID(), m_select, newBlock->m_directionID);
+	InitialBlockByBuildingID(newBlock, GetBuildingBlockCurrentBuildingEntityID());
+	newBlock->SetIndex(GetBuildingBlockCurrentBuildingEntityID(), m_BuildingBlockCurrentIndexPosition, newBlock->m_DirectionID);
 	newBlock->UpdateLocation(m_GameStateInstance, m_basePoint);
 	newBlock->UpdateRotation();
 	UpdateBuildingStatus(newBlock, true);
 	m_buildings.Add(newBlock);
-	m_GameStateInstance->m_baseStatus.Add(FBuildingStatus(GetCurrentBuildingBlockID(), m_select, newBlock->m_directionID));
+	m_GameStateInstance->m_baseStatus.Add(FBuildingStatus(GetBuildingBlockCurrentBuildingEntityID(), m_BuildingBlockCurrentIndexPosition, newBlock->m_DirectionID));
 
 }
 
@@ -172,10 +172,10 @@ float ABuildingSynchronization::GetBottomZ()
 	return m_GameStateInstance->GetBuildingPositoinFromIndex(m_basePoint, FIntVector(0, 0, GetBottomIndexZ()), 0, 0).Z;
 }
 
-FVector ABuildingSynchronization::ReturnSelectedPosition(FVector mousePosition, int direction)
+FIntVector ABuildingSynchronization::ReturnSelectedIndexPosition(FVector mousePosition, int direction)
 {
 	float minD = 100000000000;
-	m_select = FIntVector(0,0,0);
+	m_BuildingBlockCurrentIndexPosition = FIntVector(0,0,0);
 	int topZ = GetTopIndexZ();
 	int bottomZ = -GetBottomIndexZ() - 1;
 	for (int i = 0; i < FLayerConstructionStatus::LayerMaxX; i++) {
@@ -184,28 +184,58 @@ FVector ABuildingSynchronization::ReturnSelectedPosition(FVector mousePosition, 
 			if (!m_HorizontalConstructionStatus[topZ].GetLayerStatus(i, j))
 			{
 
-				FVector select_position = m_GameStateInstance->GetBuildingPositoinFromIndex(m_basePoint, FIntVector(i, j, topZ), GetCurrentBuildingBlockID(), direction);
+				FVector select_position = m_GameStateInstance->GetBuildingPositoinFromIndex(m_basePoint, FIntVector(i, j, topZ), GetBuildingBlockCurrentBuildingEntityID(), direction);
 				if (FVector::Distance(select_position, mousePosition) < minD)
 				{
 					minD = FVector::Distance(select_position, mousePosition);
-					m_select = FIntVector(i, j, topZ);
+					m_BuildingBlockCurrentIndexPosition = FIntVector(i, j, topZ);
 				}
 			}
 			if (!m_UndergroundConstructionStatus[bottomZ].GetLayerStatus(i, j))
 			{
 
-				FVector select_position = m_GameStateInstance->GetBuildingPositoinFromIndex(m_basePoint, FIntVector(i, j, -bottomZ - 1), GetCurrentBuildingBlockID(), direction);
+				FVector select_position = m_GameStateInstance->GetBuildingPositoinFromIndex(m_basePoint, FIntVector(i, j, -bottomZ - 1), GetBuildingBlockCurrentBuildingEntityID(), direction);
 				if (FVector::Distance(select_position, mousePosition) < minD)
 				{
 					minD = FVector::Distance(select_position, mousePosition);
-					m_select = FIntVector(i, j, -bottomZ - 1);
+					m_BuildingBlockCurrentIndexPosition = FIntVector(i, j, -bottomZ - 1);
 				}
 			}
 		}
 	}
 	
-	return m_GameStateInstance->GetBuildingPositoinFromIndex(m_basePoint, m_select, GetCurrentBuildingBlockID(), direction);
+	return m_BuildingBlockCurrentIndexPosition;
 
 }
 
+
+bool ABuildingSynchronization::BuildingAvailability(ABuildingBlockActor& block)
+{
+	for (int i = 0; i < m_GameStateInstance->m_buildings[block.m_BuildingEntityId].m_occupations.Num(); i++)
+	{
+		FIntVector currentOccupation = 
+			block.m_IndexPosition + 
+			DirectionRotationUtility::GetRealOccupation(
+				m_GameStateInstance->m_buildings[block.m_BuildingEntityId].m_occupations[i],
+				block.m_DirectionID);
+		bool success = false;
+		if (currentOccupation.X < FLayerConstructionStatus::LayerMaxX && currentOccupation.X >= 0 &&
+			currentOccupation.Y < FLayerConstructionStatus::LayerMaxX && currentOccupation.Y >= 0)
+		{
+			if (currentOccupation.Z >= 0 && !m_HorizontalConstructionStatus[currentOccupation.Z].GetLayerStatus(currentOccupation.X, currentOccupation.Y) ||
+				currentOccupation.Z < 0 && !m_UndergroundConstructionStatus[-currentOccupation.Z - 1].GetLayerStatus(currentOccupation.X, currentOccupation.Y))
+			{
+				success = true;
+			}
+		}
+		if (!success)
+		{
+			block.GetStaticMeshComponent()->SetMaterial(0, m_GameStateInstance->m_materialOnBuildFailure);
+			return false;
+		}
+
+	}
+	block.GetStaticMeshComponent()->SetMaterial(0, m_GameStateInstance->m_materialOnBuildSuccess);
+	return true;
+}
 

@@ -126,10 +126,10 @@ void ABuildingSystemPawn::BuildAction()
 	if (m_BuildingSystem != nullptr)
 	{
 		m_CurrentBuildingBlock = static_cast<ABuildingBlockActor*>(GetWorld()->SpawnActor(ABuildingBlockActor::StaticClass()));
-		m_BuildingSystem->InitialBlockByBuildingID(m_CurrentBuildingBlock, m_BuildingSystem->GetCurrentBuildingBlockID(), false);
+		m_BuildingSystem->InitialBlockByBuildingID(m_CurrentBuildingBlock, m_BuildingSystem->GetBuildingBlockCurrentBuildingEntityID(), false);
 		// for current build block
+		m_CurrentBuildingBlock->SetBuildingEntityIndex(m_BuildingSystem->GetBuildingBlockCurrentBuildingEntityID());
 		m_CurrentBuildingBlock->SetDirectionID(0);
-		m_CurrentBuildingBlock->GetStaticMeshComponent()->SetMaterial(0, m_GameStateInstance->m_materialOnBuild);
 	}
 
 }
@@ -137,7 +137,7 @@ void ABuildingSystemPawn::BuildAction()
 void ABuildingSystemPawn::BuildComplete()
 {
 	UE_LOG(LogTemp, Log, TEXT("BuildComplete"));
-	if (m_BuildingSystem != nullptr && m_CurrentBuildingBlock != nullptr)
+	if (m_BuildingSystem != nullptr && m_CurrentBuildingBlock != nullptr && m_BuildingSystem->BuildingAvailability(*m_CurrentBuildingBlock))
 	{
 		m_BuildingSystem->ConfirmBuilding(m_CurrentBuildingBlock);
 		m_CurrentBuildingBlock = nullptr;
@@ -183,34 +183,36 @@ void ABuildingSystemPawn::MoveDown()
 	MoveForBuilding(-1);
 }
 
-void ABuildingSystemPawn::Tick(float DeltaTime)
+void ABuildingSystemPawn::UpdateCurrentBuildingBlock()
 {
-	Super::Tick(DeltaTime);
-	m_isIntialCamera = true;
-	if (!m_isIntialCamera)
-	{
-		m_isIntialCamera = true;
-		MoveUp();
-	}
-	//DrawDebugLine(GetWorld(), TopCameraBoom->K2_GetComponentLocation(), GetActorLocation(), FColor::Blue, true);
 	//DrawDebugLine(GetWorld(), TopCameraComp->relative, GetActorLocation(), FColor::Green, true);
 	if (m_BuildingSystem != nullptr && m_CurrentBuildingBlock != nullptr && m_PlayerController != nullptr)
 	{
 		FVector mouseStartPosition, mouseDirection;
 		m_PlayerController->DeprojectMousePositionToWorld(mouseStartPosition, mouseDirection);
-
-		m_CurrentBuildingBlock->SetActorLocation(m_BuildingSystem->ReturnSelectedPosition((GetActorLocation().Z +  - mouseStartPosition.Z) / mouseDirection.Z * mouseDirection + mouseStartPosition, m_CurrentBuildingBlock->m_directionID));
-		//DrawDebugLine(GetWorld(), mouseStartPosition, (GetActorLocation().Z - mouseStartPosition.Z) / mouseDirection.Z * mouseDirection + mouseStartPosition, FColor::Red, true);
-		//UE_LOG(LogTemp, Log, TEXT("Is mouse pressed %s, %s, %s"), (*((GetActorLocation().Z - mouseStartPosition.Z) / mouseDirection.Z * mouseDirection + mouseStartPosition).ToString()), *(mouseStartPosition.ToString()), *(mouseDirection.ToString()));
+		// update location
+		m_CurrentBuildingBlock->SetIndexPosition(
+			m_BuildingSystem->ReturnSelectedIndexPosition(
+			(GetActorLocation().Z + -mouseStartPosition.Z) / mouseDirection.Z * mouseDirection + mouseStartPosition,
+				m_CurrentBuildingBlock->m_DirectionID));
+		m_CurrentBuildingBlock->SetActorLocation(
+			m_GameStateInstance->GetBuildingPositoinFromIndex(
+				m_BuildingSystem->m_basePoint, m_CurrentBuildingBlock->m_IndexPosition,
+				m_CurrentBuildingBlock->m_BuildingEntityId, m_CurrentBuildingBlock->m_DirectionID)
+		);
+		// update material(success/failure)
+		m_BuildingSystem->BuildingAvailability(*m_CurrentBuildingBlock);
 	}
+}
 
-
+void ABuildingSystemPawn::UpdateCamera()
+{
 	// Rotate Camera by Mouse X axis
 	if (UGameplayStatics::GetPlayerController(GetWorld(), 0)->IsInputKeyDown(EKeys::LeftMouseButton))
 	{
 		float mouseX, mouseY;
 		UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetMousePosition(mouseX, mouseY);
-		
+
 		if (m_IsRotateCamera)
 		{
 			RotateBuildingCamera((mouseX - m_LastMouseX) * m_InputSensitivity);
@@ -222,7 +224,20 @@ void ABuildingSystemPawn::Tick(float DeltaTime)
 	{
 		m_IsRotateCamera = false;
 	}
-	
 }
+
+void ABuildingSystemPawn::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	m_isIntialCamera = true;
+	if (!m_isIntialCamera)
+	{
+		m_isIntialCamera = true;
+		MoveUp();
+	}
+	UpdateCurrentBuildingBlock();
+	UpdateCamera();
+}
+
 
 

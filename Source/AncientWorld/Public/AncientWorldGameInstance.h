@@ -77,7 +77,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		TArray<FBuildingBlock> m_buildings;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		class UMaterial* m_materialOnBuild;
+		class UMaterial* m_materialOnBuildSuccess;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		class UMaterial* m_materialOnBuildFailure;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		TArray<FBuildingStatus> m_baseStatus;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)

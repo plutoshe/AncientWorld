@@ -12,22 +12,22 @@ class ANCIENTWORLD_API ABuildingBlockActor : public AStaticMeshActor
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
+	virtual void Tick(float DeltaTime) override;
+
 	ABuildingBlockActor();
-	void SetIndex(int buildingIndex, FIntVector positionIndex, int directionID);
-	int m_buildingIndex;
-	FIntVector m_positionIndex;
-	int m_directionID;
+	void SetIndex(int buildingEntityIndex, FIntVector indexPosition, int directionID);
+	void SetBuildingEntityIndex(int buildingEntityIndex);
+	void SetIndexPosition(FIntVector indexPosition);
+	void SetDirectionID(int directionID);
+	void UpdateLocation(class UAncientWorldGameInstance* gameinstance, FVector m_basePoint);
+	void UpdateRotation();
+	void UpdateDirectionIDOffset(int offset);
+
+	FIntVector m_IndexPosition;
+	int m_BuildingEntityId;
+	int m_DirectionID;
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-	void UpdateLocation(class UAncientWorldGameInstance* gameinstance, FVector m_basePoint);
-	void UpdateRotation();
-	void SetDirectionID(int id);
-	void UpdateDirectionIDOffset(int offset);
 };
