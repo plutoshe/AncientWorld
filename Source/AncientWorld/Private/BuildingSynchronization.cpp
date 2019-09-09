@@ -9,7 +9,23 @@
 #include "Engine/Classes/Kismet/GameplayStatics.h"
 #include "Engine/Classes/Materials/Material.h"
 #include "Public/BuildingBlockActor.h"
+#include "Public/AncientWorldGameInstance.h"
 
+
+FBuildingBlock* ABuildingSynchronization::GetCurrentBuildingBlock()
+{
+	if (m_currentSelectBuildingBlockID < m_buildings.Num())
+	{
+		return &m_gameStateInstance->m_buildings[m_currentSelectBuildingBlockID];
+	}
+
+	return nullptr;
+}
+
+int ABuildingSynchronization::GetCurrentBuildingBlockID()
+{
+	return m_currentSelectBuildingBlockID;
+}
 // Sets default values
 ABuildingSynchronization::ABuildingSynchronization()
 {
@@ -17,21 +33,10 @@ ABuildingSynchronization::ABuildingSynchronization()
 	PrimaryActorTick.bCanEverTick = true;
 
 }
-FVector ABuildingSynchronization::GetCurrentSelectLocation()
-{
-	return  GetBuildingPositoinFromIndex(m_select);
-}
 
-FVector ABuildingSynchronization::GetBuildingPositoinFromIndex(FIntVector index)
+void ABuildingSynchronization::InitialBlockByBuildingID(ABuildingBlockActor* newBlock, int buildingId, bool setMaterial = true)
 {
-	return basePoint + FVector(index) * m_gameStateInstance->m_BaseLayerLength;
-}
-
-void ABuildingSynchronization::InitialBlock(ABuildingBlockActor* newBlock, int buildingId, bool setMaterial = true)
-{
-	newBlock->SetMobility(EComponentMobility::Movable);
 	newBlock->SetActorScale3D(m_gameStateInstance->GetModelScale());
-
 	newBlock->GetStaticMeshComponent()->SetStaticMesh(m_gameStateInstance->m_buildings[buildingId].m_mesh);
 
 	if (setMaterial)
@@ -50,7 +55,7 @@ void ABuildingSynchronization::BeginPlay()
 {
 	Super::BeginPlay();
 	m_gameStateInstance = static_cast<UAncientWorldGameInstance*>(UGameplayStatics::GetGameInstance(GetWorld()));
-	basePoint = GetActorLocation();
+	m_basePoint = GetActorLocation();
 	if (m_gameStateInstance != nullptr && m_gameStateInstance->m_baseStatus.Num() > 0)
 	{
 		int32 maxZ = m_gameStateInstance->m_baseStatus[0].m_positionIndexForBase.Z;
@@ -71,20 +76,21 @@ void ABuildingSynchronization::BeginPlay()
 			m_HorizontalConstructionStatus.Add(FLayerConstructionStatus(i));
 		}
 
-		//
 		for (int i = 0; i < m_gameStateInstance->m_baseStatus.Num(); i++)
 		{
 			ABuildingBlockActor* newBlock = static_cast<ABuildingBlockActor*>(GetWorld()->SpawnActor(ABuildingBlockActor::StaticClass()));
-			InitialBlock(newBlock, m_gameStateInstance->m_baseStatus[i].m_buildingBlockIndex);
-			
-			newBlock->SetIndex(m_gameStateInstance->m_baseStatus[i].m_buildingBlockIndex, m_gameStateInstance->m_baseStatus[i].m_positionIndexForBase);
-			newBlock->SetActorLocation(GetBuildingPositoinFromIndex(m_gameStateInstance->m_baseStatus[i].m_positionIndexForBase));
+			InitialBlockByBuildingID(newBlock, m_gameStateInstance->m_baseStatus[i].m_buildingBlockIndex);
+			newBlock->SetIndex(m_gameStateInstance->m_baseStatus[i].m_buildingBlockIndex, m_gameStateInstance->m_baseStatus[i].m_positionIndexForBase, m_gameStateInstance->m_baseStatus[i].m_direction);
+			newBlock->UpdateLocation(m_gameStateInstance, m_basePoint);
+			newBlock->UpdateRotation();
 			UpdateBuildingStatus(newBlock, true);
 			m_buildings.Add(newBlock);
 		}
 	}
 	
 }
+
+
 
 void ABuildingSynchronization::UpdateBuildingStatus(ABuildingBlockActor* block, bool isAddition)
 {
@@ -96,7 +102,7 @@ void ABuildingSynchronization::UpdateBuildingStatus(ABuildingBlockActor* block, 
 
 	for (int i = 0; i < m_gameStateInstance->m_buildings[block->m_buildingIndex].m_occupations.Num(); i++)
 	{
-		FIntVector currentOccupation = block->m_positionIndex + m_gameStateInstance->m_buildings[block->m_buildingIndex].m_occupations[i];
+		FIntVector currentOccupation = block->m_positionIndex + DirectionRotationUtility::GetRealOccupation(m_gameStateInstance->m_buildings[block->m_buildingIndex].m_occupations[i], block->m_directionID);
 		if (currentOccupation.Z >= 0)
 		{
 			for (int j = m_HorizontalConstructionStatus.Num(); j <= currentOccupation.Z; j++)
@@ -125,15 +131,16 @@ void ABuildingSynchronization::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 }
-void ABuildingSynchronization::ConfirmBuilding()
+void ABuildingSynchronization::ConfirmBuilding(ABuildingBlockActor* newBlock)
 {
-	ABuildingBlockActor *newBlock = static_cast<ABuildingBlockActor*>(GetWorld()->SpawnActor(ABuildingBlockActor::StaticClass()));
-	InitialBlock(newBlock, m_gameStateInstance->GetCurrentBuildingBlockID());
-	newBlock->SetIndex(m_gameStateInstance->GetCurrentBuildingBlockID(), m_select);
-	newBlock->SetActorLocation(GetBuildingPositoinFromIndex(m_select));
+	//ABuildingBlockActor *newBlock = static_cast<ABuildingBlockActor*>(GetWorld()->SpawnActor(ABuildingBlockActor::StaticClass()));
+	InitialBlockByBuildingID(newBlock, GetCurrentBuildingBlockID());
+	newBlock->SetIndex(GetCurrentBuildingBlockID(), m_select, newBlock->m_directionID);
+	newBlock->UpdateLocation(m_gameStateInstance, m_basePoint);
+	newBlock->UpdateRotation();
 	UpdateBuildingStatus(newBlock, true);
 	m_buildings.Add(newBlock);
-	m_gameStateInstance->m_baseStatus.Add(FBuildingStatus(m_gameStateInstance->GetCurrentBuildingBlockID(), m_select));
+	m_gameStateInstance->m_baseStatus.Add(FBuildingStatus(GetCurrentBuildingBlockID(), m_select, newBlock->m_directionID));
 
 }
 
@@ -157,15 +164,15 @@ int ABuildingSynchronization::GetBottomIndexZ()
 
 float ABuildingSynchronization::GetTopZ()
 {
-	return GetBuildingPositoinFromIndex(FIntVector(0, 0, GetTopIndexZ())).Z;
+	return m_gameStateInstance->GetBuildingPositoinFromIndex(m_basePoint, FIntVector(0, 0, GetTopIndexZ()) , 0, 0).Z;
 }
 
 float ABuildingSynchronization::GetBottomZ()
 {
-	return GetBuildingPositoinFromIndex(FIntVector(0, 0, GetBottomIndexZ())).Z;
+	return m_gameStateInstance->GetBuildingPositoinFromIndex(m_basePoint, FIntVector(0, 0, GetBottomIndexZ()), 0, 0).Z;
 }
 
-FVector ABuildingSynchronization::ReturnSelectedPosition(FVector mousePosition)
+FVector ABuildingSynchronization::ReturnSelectedPosition(FVector mousePosition, int direction)
 {
 	float minD = 100000000000;
 	m_select = FIntVector(0,0,0);
@@ -177,7 +184,7 @@ FVector ABuildingSynchronization::ReturnSelectedPosition(FVector mousePosition)
 			if (!m_HorizontalConstructionStatus[topZ].GetLayerStatus(i, j))
 			{
 
-				FVector select_position = GetBuildingPositoinFromIndex(FIntVector(i, j, topZ));
+				FVector select_position = m_gameStateInstance->GetBuildingPositoinFromIndex(m_basePoint, FIntVector(i, j, topZ), GetCurrentBuildingBlockID(), direction);
 				if (FVector::Distance(select_position, mousePosition) < minD)
 				{
 					minD = FVector::Distance(select_position, mousePosition);
@@ -187,7 +194,7 @@ FVector ABuildingSynchronization::ReturnSelectedPosition(FVector mousePosition)
 			if (!m_UndergroundConstructionStatus[bottomZ].GetLayerStatus(i, j))
 			{
 
-				FVector select_position = GetBuildingPositoinFromIndex(FIntVector(i, j, -bottomZ - 1));
+				FVector select_position = m_gameStateInstance->GetBuildingPositoinFromIndex(m_basePoint, FIntVector(i, j, -bottomZ - 1), GetCurrentBuildingBlockID(), direction);
 				if (FVector::Distance(select_position, mousePosition) < minD)
 				{
 					minD = FVector::Distance(select_position, mousePosition);
@@ -197,7 +204,7 @@ FVector ABuildingSynchronization::ReturnSelectedPosition(FVector mousePosition)
 		}
 	}
 	
-	return GetBuildingPositoinFromIndex(m_select);
+	return m_gameStateInstance->GetBuildingPositoinFromIndex(m_basePoint, m_select, GetCurrentBuildingBlockID(), direction);
 
 }
 

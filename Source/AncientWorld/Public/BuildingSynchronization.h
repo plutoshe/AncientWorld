@@ -33,7 +33,10 @@ public:
 	}
 	void SetLayerStatus(int x, int y, bool status)
 	{
-		m_layerStatus[x * LayerMaxY + y] = status;
+		if (x * LayerMaxY + y < 4 && x * LayerMaxY + y >= 0)
+		{
+			m_layerStatus[x * LayerMaxY + y] = status;
+		}
 	}
 	bool GetLayerStatus(int x, int y)
 	{
@@ -49,11 +52,9 @@ class ANCIENTWORLD_API ABuildingSynchronization : public AActor
 public:	
 	// Sets default values for this actor's properties
 	ABuildingSynchronization();
-	void ConfirmBuilding();
-	FVector ReturnSelectedPosition(FVector mousePosition);
-	FVector GetBuildingPositoinFromIndex(FIntVector index);
-	FVector GetCurrentSelectLocation();
-	void InitialBlock(class ABuildingBlockActor* newBlock, int buildingId, bool setMaterial);
+	void ConfirmBuilding(class ABuildingBlockActor* newBlock);
+	FVector ReturnSelectedPosition(FVector mousePosition, int direction);
+	void InitialBlockByBuildingID(class ABuildingBlockActor* newBlock, int buildingId, bool setMaterial);
 	void UpdateBuildingStatus(ABuildingBlockActor* block, bool isAddition);
 	int GetTopIndexZ();
 	int GetBottomIndexZ();
@@ -69,10 +70,14 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	class UAncientWorldGameInstance* m_gameStateInstance;
 	TArray<class ABuildingBlockActor*> m_buildings;
-	TArray<FVector> m_BuildingSlot;
-	FVector basePoint;
+	FVector m_basePoint;
 
 	FIntVector m_select;
 	TArray<FLayerConstructionStatus> m_UndergroundConstructionStatus;
 	TArray<FLayerConstructionStatus> m_HorizontalConstructionStatus;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		int m_currentSelectBuildingBlockID;
+
+	struct FBuildingBlock* GetCurrentBuildingBlock();
+	int GetCurrentBuildingBlockID();
 };

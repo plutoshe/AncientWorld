@@ -2,27 +2,16 @@
 
 
 #include "AncientWorldGameInstance.h"
+const int32 DirectionRotationUtility::m_directionOffset[4][2] = { {1,1},{-1,1 } ,{-1,-1 } ,{1,-1} };
 
 UAncientWorldGameInstance::UAncientWorldGameInstance()
 {
-	m_currentSelectBuildingBlockID = 0;
-
-}
-
-FBuildingBlock* UAncientWorldGameInstance::GetCurrentBuildingBlock()
-{
-	if (m_currentSelectBuildingBlockID < m_buildings.Num())
+	for (int i = 0; i < m_buildings.Num(); i++)
 	{
-		return &m_buildings[m_currentSelectBuildingBlockID];
+		m_buildings[i].UpdateMaxXY();
 	}
-
-	return nullptr;
 }
 
-int UAncientWorldGameInstance::GetCurrentBuildingBlockID()
-{
-	return m_currentSelectBuildingBlockID;
-}
 
 FVector UAncientWorldGameInstance::GetModelScale()
 {

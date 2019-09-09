@@ -23,12 +23,16 @@ public:
 	void BuildAction();
 	void BuildComplete();
 	void MoveBuildingCamera(float axis);
+
+	void RoatetForward();
+	void RotateBackword();
 	ABuildingSystemPawn();
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Actor, meta = (AllowPrivateAccess = "true"))
+		class USceneComponent* lookPoint;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -41,12 +45,13 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		class USpringArmComponent* CameraBoon;
 
+
 	UPROPERTY(EditAnywhere, BluePrintReadWrite)
 		class ABuildingSynchronization* m_buildingsystem;
 	UPROPERTY(EditAnywhere, BluePrintReadWrite)
 		float m_inputSensitivity;
 private:
-	class ABuildingBlockActor* m_BuildingBlock;
+	class ABuildingBlockActor* m_CurrentBuildingBlock;
 	class UAncientWorldGameInstance* m_gameStateInstance;
 	APlayerController* m_PlayerController;
 
@@ -62,5 +67,7 @@ private:
 	float m_cameraAngle;
 	bool m_IsMoveCamera;
 	float m_lastMouseX;
+	bool m_isIntialCamera;
+	FVector m_intialPoint;
 };
 
