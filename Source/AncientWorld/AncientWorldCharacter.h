@@ -17,7 +17,7 @@ public:
 		Name = FText::FromString("Item");
 		Action = FText::FromString("Use");
 		Describtion = FText::FromString("Add Description");
-		Value = 10;
+		Value = 1;
 	}
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -97,6 +97,7 @@ protected:
 
 	void SetSelectingItem(FInventoryItem* _item);
 	void ClearItem();
+
 	TMap<FName, class AAPToolBase*> m_spawnedToolList;
 	// Spawn all useful tools and disable them.
 	void SpawnUsefulTools();
@@ -108,11 +109,14 @@ public:
 	void SwitchToItem(int slotID);
 	void InteractWithTool(class AAPInteractItemBase* interactBase);
 
+	UFUNCTION(BlueprintCallable)
+	void RemoveItemFromInventory(FName itemID, int _amount);
+	UFUNCTION(BlueprintCallable)
+	void ThrowItem(const FInventoryItem& _spawnItem);
 	UFUNCTION(BlueprintImplementableEvent)
 		void OnAddNewItem(FInventoryItem _newItem);
 	UFUNCTION(BlueprintImplementableEvent)
 		void OnAddExistingItem(FName _name);
-
 
 #pragma endregion
 

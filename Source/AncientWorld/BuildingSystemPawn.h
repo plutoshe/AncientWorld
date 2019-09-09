@@ -22,7 +22,9 @@ public:
 	
 	void BuildAction();
 	void BuildComplete();
+	UFUNCTION(BlueprintCallable, Category = "BuilidingSystem")
 	void MoveUp();
+	UFUNCTION(BlueprintCallable, Category = "BuilidingSystem")
 	void MoveDown();
 	void MoveForBuilding(int direction);
 	void RotateBuildingCamera(float axis);

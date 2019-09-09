@@ -16,6 +16,8 @@
 #include "Public/APToolBase.h"
 #include "Engine/Classes/Kismet/GameplayStatics.h"
 #include "BuildingSystemPawn.h"
+#include "Public/APPickUP.h"
+#include "Public/APInteractItemBase.h"
 
 AAncientWorldCharacter::AAncientWorldCharacter()
 {
@@ -192,6 +194,24 @@ void AAncientWorldCharacter::PerformCameraRotation(float DeltaSeconds)
 #pragma region InventorySystem
 
 
+void AAncientWorldCharacter::SpawnUsefulTools()
+{
+	AAncientWorldGameMode* GM = Cast<AAncientWorldGameMode>(GetWorld()->GetAuthGameMode());
+	TArray<TSubclassOf<AAPToolBase>> spawnList = GM->GetSpawnToolList();
+
+	for (TSubclassOf<AAPToolBase> toolClass : spawnList)
+	{
+		FActorSpawnParameters ActorSpawnParams;
+		ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		AAPToolBase* spawnedTool = GetWorld()->SpawnActor<AAPToolBase>(toolClass, InteractPointComp->GetComponentLocation(), InteractPointComp->GetComponentRotation(), ActorSpawnParams);
+		// Add fname / spawn tool to the tool base
+		m_spawnedToolList.Add(spawnedTool->m_ItemID, spawnedTool);
+		// Disable the tool
+		spawnedTool->SetOwner(this);
+		spawnedTool->DeSelected();
+	}
+}
 void AAncientWorldCharacter::SetSelectingItem(FInventoryItem* _item)
 {
 	if (_item != nullptr) {
@@ -236,22 +256,15 @@ void AAncientWorldCharacter::ClearItem()
 	}
 }
 
-void AAncientWorldCharacter::SpawnUsefulTools()
+void AAncientWorldCharacter::ThrowItem(const FInventoryItem& _spawnItem)
 {
-	AAncientWorldGameMode* GM = Cast<AAncientWorldGameMode>(GetWorld()->GetAuthGameMode());
-	TArray<TSubclassOf<AAPToolBase>> spawnList = GM->GetSpawnToolList();
+	if (!_spawnItem.ItemID.IsEqual(TEXT("None"))) {
+		TSubclassOf<AAPPickUP> spawnedClass = _spawnItem.ItemPickUp;
+		FActorSpawnParameters spawnPara;
+		spawnPara.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		AAPPickUP* spawnActor = GetWorld()->SpawnActor<AAPPickUP>(spawnedClass,GetActorLocation() + GetActorForwardVector() * 30.f, FRotator::ZeroRotator,spawnPara);
 
-	for (TSubclassOf<AAPToolBase> toolClass : spawnList)
-	{
-		FActorSpawnParameters ActorSpawnParams;
-		ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-		AAPToolBase* spawnedTool = GetWorld()->SpawnActor<AAPToolBase>(toolClass, InteractPointComp->GetComponentLocation(), InteractPointComp->GetComponentRotation(), ActorSpawnParams);
-		// Add fname / spawn tool to the tool base
-		m_spawnedToolList.Add(spawnedTool->m_ItemID, spawnedTool);
-		// Disable the tool
-		spawnedTool->SetOwner(this);
-		spawnedTool->DeSelected();
+		spawnActor->AddImpulseToOverlapComp(GetActorForwardVector(), 500.f);
 	}
 }
 
@@ -302,9 +315,54 @@ void AAncientWorldCharacter::SwitchToItem(int slotID)
 
 void AAncientWorldCharacter::InteractWithTool(AAPInteractItemBase* interactBase)
 {
-	if (m_usingTool != nullptr) {
-		m_usingTool->StartUse(interactBase);
+	if (interactBase) {
+		if (interactBase->m_bRequireTool) {
+			if (m_usingTool != nullptr) {
+				m_usingTool->StartUse(interactBase);
+			}
+		}
+		else {
+			interactBase->Interact();
+		}
 	}
+	else {
+		if (m_usingTool != nullptr) {
+			m_usingTool->StartUse(nullptr);
+		}
+	}
+
+}
+
+void AAncientWorldCharacter::RemoveItemFromInventory(FName itemID, int _amount)
+{
+	FInventoryItem* tempItem = nullptr;
+	int idx = -1;
+	for (int i = 0; i < Inventory.Num(); i++)
+	{
+		if (Inventory[i].ItemID.IsEqual(itemID)) {
+			tempItem = &Inventory[i];
+			idx = i;
+			break;
+		}
+	}
+	if (tempItem != nullptr) {
+		tempItem->Value -= _amount;
+		UE_LOG(LogTemp, Log, TEXT("%s Amount of item: %d"), *tempItem->ItemID.ToString(), tempItem->Value);
+
+		if (tempItem->Value <= 0) {
+			tempItem->Value = 0;
+
+			// if current using one is going to be removed
+			if (m_currentItem != nullptr && m_currentItem->ItemID.IsEqual(Inventory[idx].ItemID)) {
+				ClearItem();
+			}
+			// remove the used item
+			Inventory.RemoveAt(idx);
+			UE_LOG(LogTemp, Log, TEXT("Size of inventory after remove item: %d"), Inventory.Num());
+		}
+	}
+
+
 }
 
 #pragma endregion

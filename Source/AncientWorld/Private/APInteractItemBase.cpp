@@ -29,6 +29,15 @@ AAPInteractItemBase::AAPInteractItemBase()
 	WidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComp"));
 	WidgetComp->SetupAttachment(CapComp);
 
+
+	OutlineMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("OutlineMesh"));
+	OutlineMesh->SetupAttachment(RootComponent);
+	OutlineMesh->SetVisibility(false);
+	m_bHasOutline = false;
+	m_bRequireTool = true;
+
+	m_bInteractDisabled = false;
+	m_bOneTimeInteract = false;
 }
 
 // Called when the game starts or when spawned
@@ -44,8 +53,8 @@ void AAPInteractItemBase::OnPawnEnter(UPrimitiveComponent* OverlappedComponent, 
 		AAncientWorldCharacter* characterBase = Cast<AAncientWorldCharacter>(OtherActor);
 		if (characterBase) {
 			m_InteratingActor = characterBase;
-
-			SetWidgetVisibility(true);
+			UE_LOG(LogTemp, Log, TEXT("Player enter"));
+			//SetWidgetVisibility(true);
 		}
 	}
 }
@@ -56,7 +65,7 @@ void AAPInteractItemBase::OnPawnLeft(UPrimitiveComponent* OverlappedComponent, A
 		AAncientWorldCharacter* characterBase = Cast<AAncientWorldCharacter>(OtherActor);
 		if (characterBase) {
 			if (m_InteratingActor == characterBase) {
-				SetWidgetVisibility(false);
+				//SetWidgetVisibility(false);
 				UnInteract();
 				m_InteratingActor = nullptr;
 			}
@@ -80,7 +89,7 @@ void AAPInteractItemBase::Interact()
 
 void AAPInteractItemBase::UnInteract()
 {
-	if(!m_bInteracting) return;
+	if(m_bInteractDisabled || !m_bInteracting) return;
 	m_bInteracting = false;
 	BPUnInteract();
 }
@@ -89,4 +98,5 @@ void AAPInteractItemBase::SetWidgetVisibility(bool _show)
 {
 	WidgetComp->SetVisibility(_show);
 }
+
 

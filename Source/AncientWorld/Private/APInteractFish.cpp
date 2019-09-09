@@ -79,7 +79,7 @@ void AAPInteractFish::Interact()
 {
 	Super::Interact();
 	// it is a required tool
-	if (m_requiredItemID.IsEqual(m_InteratingActor->GetCurrentItem()->ItemID)) {
+	if (m_InteratingActor && m_requiredItemID.IsEqual(m_InteratingActor->GetCurrentItem()->ItemID)) {
 		GetDamage(10);
 
 	}
@@ -163,7 +163,7 @@ void AAPInteractFish::UpdateFishMovement(float t)
 
 void AAPInteractFish::MoveTo3DLocation(FVector _newLoc)
 {
-	DrawDebugLine(GetWorld(), GetActorLocation(), _newLoc, FColor::Yellow, false, 2.f);
+	//DrawDebugLine(GetWorld(), GetActorLocation(), _newLoc, FColor::Yellow, false, 2.f);
 	m_Destination = _newLoc;
 	m_bMoving = true;
 }

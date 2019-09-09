@@ -40,6 +40,19 @@ protected:
 
 	UFUNCTION()
 		void OnPawnEnter(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+	
+#pragma region SpawnFunctions
+protected:
+	FTimerHandle m_SpawnHandle;
+	float m_timeAvoidPickUpAfterSpawn;
+	void AllowToPickUp() ;
+
+public:
+	void AddImpulseToOverlapComp(const FVector _dir, float _magnitute);
+
+#pragma endregion
+protected:
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		bool m_bCanMoveToPlayer;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
