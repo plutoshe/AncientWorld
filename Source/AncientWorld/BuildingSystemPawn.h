@@ -12,49 +12,64 @@ class ANCIENTWORLD_API ABuildingSystemPawn : public APawn
 	GENERATED_BODY()
 
 public:
+	virtual void Tick(float DeltaTime) override;
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	UFUNCTION(BlueprintCallable, Category = "MyCategory")
+	UFUNCTION(BlueprintCallable, Category = "BuilidingSystem")
 		void BuildCancellation();
+	UFUNCTION(BlueprintCallable, Category = "BuilidingSystem")
+		void ChangeCurrentBuildingBlockEntityID(int id);
 	
-	void ChangeToBuildingSystem();
-	void MoveUp();
-	void MoveDown();
-	void MoveForBuilding(int direction);
 	void BuildAction();
 	void BuildComplete();
-	
+	UFUNCTION(BlueprintCallable, Category = "BuilidingSystem")
+	void MoveUp();
+	UFUNCTION(BlueprintCallable, Category = "BuilidingSystem")
+	void MoveDown();
+	void MoveForBuilding(int direction);
+	void RotateBuildingCamera(float axis);
+	void RoatetForward();
+	void RotateBackword();
+	void UpdateCamera();
+	void UpdateCurrentBuildingBlock();
+
 	ABuildingSystemPawn();
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+		class UCameraComponent* TopCameraComp;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+		class UCameraComponent* BottomCameraComp;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+		class USpringArmComponent* TopCameraBoom;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+		class USpringArmComponent* BottomCameraBoom;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Actor, meta = (AllowPrivateAccess = "true"))
+		class USceneComponent* OriginPoint;
+
+	UPROPERTY(EditAnywhere, BluePrintReadWrite)
+		class ABuildingSynchronization* m_BuildingSystem;
+	UPROPERTY(EditAnywhere, BluePrintReadWrite)
+		float m_InputSensitivity;
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-		class UCameraComponent* CameraComp;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-		class USpringArmComponent* CameraBoon;
-
-	UPROPERTY(EditAnywhere, BluePrintReadWrite)
-		class ABuildingSynchronization* m_buildingsystem;
 
 private:
-	class AStaticMeshActor* m_BuildingBlock;
-	class UAncientWorldGameInstance* m_gameStateInstance;
-	APlayerController* m_PlayerController;
+	class ABuildingBlockActor* m_CurrentBuildingBlock;
+	class UAncientWorldGameInstance* m_GameStateInstance;
+	class APlayerController* m_PlayerController;
 
-	FVector m_MoveCameraDst;
-	FVector m_MoveCameraSrc;
+	FVector m_CameraRotationInitialTopPoint, m_CameraRotationInitialBottomPoint;
 
-	float m_MoveTimeSpan;
-	float m_MoveRemainingTime;	
+	float m_CameraAngle;
+	float m_LastMouseX;
 	float m_LayerLength;
-	int m_select;
+	float m_MoveCameraDstZ;
+	
+	bool m_IsRotateCamera;
+	bool m_isIntialCamera;
+	bool m_IsTopCamera;
 };
 

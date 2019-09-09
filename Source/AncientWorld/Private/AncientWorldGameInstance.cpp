@@ -2,24 +2,23 @@
 
 
 #include "AncientWorldGameInstance.h"
+const int32 DirectionRotationUtility::m_directionAngle[4] = { 0, 90, 180, 270 };
 
 UAncientWorldGameInstance::UAncientWorldGameInstance()
 {
-	m_currentSelectBuildingBlockID = 0;
-
-}
-
-FBuildingBlock* UAncientWorldGameInstance::GetCurrentBuildingBlock()
-{
-	if (m_currentSelectBuildingBlockID < m_buildings.Num())
+	for (int i = 0; i < m_BuildingEntities.Num(); i++)
 	{
-		return &m_buildings[m_currentSelectBuildingBlockID];
+		m_BuildingEntities[i].UpdateMaxXY();
 	}
-
-	return nullptr;
 }
 
-int UAncientWorldGameInstance::GetCurrentBuildingBlockID()
+
+FVector UAncientWorldGameInstance::GetModelScale()
 {
-	return m_currentSelectBuildingBlockID;
+	return m_ModelScale;
+}
+
+FVector UAncientWorldGameInstance::GetBuildingLayerLength()
+{
+	return m_BaseLayerLength;
 }
