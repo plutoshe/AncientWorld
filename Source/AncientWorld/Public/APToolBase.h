@@ -44,6 +44,9 @@ protected:
 	virtual void OnCastFinish();
 	// The actual effect to the environment / player or whatever
 	virtual void Use();
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void BPOnUse();
 	FTimerHandle m_BackSwingHandle;
 	// Call when back swing time is done
 	virtual void OnBackSwingFinish();

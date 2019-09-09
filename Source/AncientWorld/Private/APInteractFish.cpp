@@ -163,7 +163,7 @@ void AAPInteractFish::UpdateFishMovement(float t)
 
 void AAPInteractFish::MoveTo3DLocation(FVector _newLoc)
 {
-	DrawDebugLine(GetWorld(), GetActorLocation(), _newLoc, FColor::Yellow, false, 2.f);
+	//DrawDebugLine(GetWorld(), GetActorLocation(), _newLoc, FColor::Yellow, false, 2.f);
 	m_Destination = _newLoc;
 	m_bMoving = true;
 }
