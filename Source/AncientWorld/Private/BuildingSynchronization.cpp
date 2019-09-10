@@ -270,3 +270,12 @@ FVector ABuildingSynchronization::GetHorizontalCenter()
 		m_basePoint.Y,
 		m_basePoint.Z + m_GameStateInstance->m_BaseLayerLength.Z * ((m_HorizontalConstructionStatus.Num() - 1) / 2));
 }
+
+int  ABuildingSynchronization::GetHighestLayer()
+{
+	if (m_HorizontalConstructionStatus.Num() == 0)
+		return 0;
+	if (m_HorizontalConstructionStatus.Last().m_availableBlock != FLayerConstructionStatus::LayerMaxX * FLayerConstructionStatus::LayerMaxY)
+		return m_HorizontalConstructionStatus.Num() - 2;
+	return  m_HorizontalConstructionStatus.Num() - 1;
+}

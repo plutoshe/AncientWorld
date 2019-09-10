@@ -125,7 +125,7 @@ void AAPInteractFish::BounceToRandomDirection()
 	FVector dir = FVector::UpVector;
 	dir.X = FMath::RandRange(-0.1f, 0.1f);
 	dir.Y = FMath::RandRange(-0.1f, 0.1f);
-	FVector impulse = dir * RNd * m_ImpulsePower;
+	FVector impulse = FVector::UpVector * m_ImpulsePower;
 	CapComp->AddImpulse((impulse + FVector::UpVector * m_ImpulsePower) * 100, NAME_None);
 }
 #pragma endregion
