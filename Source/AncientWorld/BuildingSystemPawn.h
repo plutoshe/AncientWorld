@@ -20,6 +20,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "BuilidingSystem")
 		void ChangeCurrentBuildingBlockEntityID(int id);
 	
+	UFUNCTION(BlueprintCallable, Category = "BuilidingSystem")
 	void BuildAction();
 	void BuildComplete();
 	UFUNCTION(BlueprintCallable, Category = "BuilidingSystem")

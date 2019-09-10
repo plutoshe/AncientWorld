@@ -44,22 +44,19 @@ AAPInteractTeleport::AAPInteractTeleport()
 void AAPInteractTeleport::SetTeleportable(bool _canTeleport)
 {
 	m_bCanTeleport = _canTeleport;
-	DoorMesh->SetMaterial(0, m_Dynamic_M_enabledMaterial);
-
+	DoorMesh->SetMaterial(0, _canTeleport?m_Dynamic_M_enabledMaterial: m_Dynamic_M_disabledMaterial);
 }
 
 void AAPInteractTeleport::EnterTeleportCD()
 {
 	SetTeleportable(false);
 	GetWorldTimerManager().SetTimer(m_TeleportCDHandle, this, &AAPInteractTeleport::OnCDFinish, m_TeleportCDTime, false);
-
-	DoorMesh->SetMaterial(0, m_Dynamic_M_disabledMaterial);
 }
 
 void AAPInteractTeleport::BeginPlay()
 {
 	Super::BeginPlay();
-	EnterTeleportCD();
+	SetTeleportable(false);
 }
 
 void AAPInteractTeleport::OnPawnLeftDoor(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
