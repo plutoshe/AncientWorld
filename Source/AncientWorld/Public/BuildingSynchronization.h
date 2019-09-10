@@ -60,6 +60,8 @@ public:
 	int GetBottomIndexZ();
 	float GetTopZ();
 	float GetBottomZ();
+	UFUNCTION(BlueprintCallable, Category = "BuilidingSystem")
+		FVector GetHorizontalCenter();
 	bool BuildingAvailability(ABuildingBlockActor& block);
 
 protected:
