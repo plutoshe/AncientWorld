@@ -56,7 +56,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		class UStaticMesh* m_mesh;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		TArray<UMaterial*> m_materials;
+		TArray<UMaterialInterface*> m_materials;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		TArray<FIntVector> m_occupations;
 	int m_maxX, m_maxY;

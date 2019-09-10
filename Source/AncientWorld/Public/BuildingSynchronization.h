@@ -56,10 +56,15 @@ public:
 	FIntVector ReturnSelectedIndexPosition(FVector mousePosition, int direction);
 	void InitialBlockByBuildingID(class ABuildingBlockActor* newBlock, int buildingId, bool setMaterial);
 	void UpdateBuildingStatus(ABuildingBlockActor* block, bool isAddition);
+	UFUNCTION(BlueprintCallable, Category = "BuildingSystem")
+		int GetHighestLayer();
+
 	int GetTopIndexZ();
 	int GetBottomIndexZ();
 	float GetTopZ();
 	float GetBottomZ();
+	UFUNCTION(BlueprintCallable, Category = "BuilidingSystem")
+		FVector GetHorizontalCenter();
 	bool BuildingAvailability(ABuildingBlockActor& block);
 
 protected:

@@ -238,12 +238,44 @@ bool ABuildingSynchronization::BuildingAvailability(ABuildingBlockActor& block)
 		}
 		if (!success)
 		{
-			block.GetStaticMeshComponent()->SetMaterial(0, m_GameStateInstance->m_MaterialOnBuildFailure);
+			for (int matID = 0; matID < m_GameStateInstance->m_BuildingEntities[block.m_BuildingEntityId].m_materials.Num(); matID++)
+			{
+				block.GetStaticMeshComponent()->SetMaterial(matID, m_GameStateInstance->m_MaterialOnBuildFailure);
+			}
 			return false;
 		}
 
 	}
-	block.GetStaticMeshComponent()->SetMaterial(0, m_GameStateInstance->m_MaterialOnBuildSuccess);
+	for (int matID = 0; matID < m_GameStateInstance->m_BuildingEntities[block.m_BuildingEntityId].m_materials.Num(); matID++)
+	{
+		block.GetStaticMeshComponent()->SetMaterial(matID, m_GameStateInstance->m_MaterialOnBuildSuccess);
+	}
 	return true;
 }
 
+
+FVector ABuildingSynchronization::GetHorizontalCenter()
+{
+	if (m_HorizontalConstructionStatus.Num() == 0)
+		return m_basePoint;
+	if (m_HorizontalConstructionStatus.Last().m_availableBlock != FLayerConstructionStatus::LayerMaxX * FLayerConstructionStatus::LayerMaxY)
+	{
+		return FVector(
+			m_basePoint.X,
+			m_basePoint.Y,
+			m_basePoint.Z + m_GameStateInstance->m_BaseLayerLength.Z * (m_HorizontalConstructionStatus.Num() / 2.0));
+	}
+	return FVector(
+		m_basePoint.X,
+		m_basePoint.Y,
+		m_basePoint.Z + m_GameStateInstance->m_BaseLayerLength.Z * ((m_HorizontalConstructionStatus.Num() - 1) / 2));
+}
+
+int  ABuildingSynchronization::GetHighestLayer()
+{
+	if (m_HorizontalConstructionStatus.Num() == 0)
+		return 0;
+	if (m_HorizontalConstructionStatus.Last().m_availableBlock != FLayerConstructionStatus::LayerMaxX * FLayerConstructionStatus::LayerMaxY)
+		return m_HorizontalConstructionStatus.Num() - 2;
+	return  m_HorizontalConstructionStatus.Num() - 1;
+}

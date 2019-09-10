@@ -30,7 +30,7 @@ AAPPickUP::AAPPickUP()
 
 	m_MoveSpeed = 650.f;
 	m_bCanMoveToPlayer = false;
-	m_timeAvoidPickUpAfterSpawn = 2.f;
+	m_timeAvoidPickUpAfterSpawn = 1.4f;
 	m_floatDistance = 5;
 	m_floatSpeed = 1;
 	m_ThresholdToDestroy = 1;
