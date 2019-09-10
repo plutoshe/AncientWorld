@@ -45,6 +45,8 @@ void AAPInteractTeleport::SetTeleportable(bool _canTeleport)
 {
 	m_bCanTeleport = _canTeleport;
 	DoorMesh->SetMaterial(0, _canTeleport?m_Dynamic_M_enabledMaterial: m_Dynamic_M_disabledMaterial);
+
+	UE_LOG(LogTemp, Log, TEXT("Set Teleportable: %d"), m_bCanTeleport);
 }
 
 void AAPInteractTeleport::EnterTeleportCD()
@@ -56,7 +58,7 @@ void AAPInteractTeleport::EnterTeleportCD()
 void AAPInteractTeleport::BeginPlay()
 {
 	Super::BeginPlay();
-	SetTeleportable(false);
+
 }
 
 void AAPInteractTeleport::OnPawnLeftDoor(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
