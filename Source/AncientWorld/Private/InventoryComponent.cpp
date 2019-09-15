@@ -4,6 +4,7 @@
 #include "Public/InventoryComponent.h"
 #include "AncientWorldGameMode.h"
 #include "Engine/World.h"
+#include "Public/APPickUP.h"
 // Sets default values for this component's properties
 UInventoryComponent::UInventoryComponent()
 {
@@ -87,7 +88,7 @@ bool UInventoryComponent::AddItem(FName itemID, int amount)
 	return false;
 }
 
-void UInventoryComponent::ReduceItemAmount(FName itemID, int amount)
+int UInventoryComponent::ReduceItemAmount(FName itemID, int amount)
 {
 	UE_LOG(LogTemp, Log, TEXT("Reduce %s Amount: %d"), *itemID.ToString(), amount);
 
@@ -95,16 +96,18 @@ void UInventoryComponent::ReduceItemAmount(FName itemID, int amount)
 	{
 		// Check if it is existing item
 		if ((*it).ItemID.IsEqual(itemID)) {
+			int beforeCount = (*it).Value;
 			(*it).Value -= amount;
 			if ((*it).Value <= 0) {
 				RemoveItem(itemID);
-				return;
+				return beforeCount;
 			}
 			// Update the HUD in BP
 			OnUpdateHUD.Broadcast();
-			break;
+			return amount;
 		}
 	}
+	return 0;
 }
 
 void UInventoryComponent::RemoveItem(FName itemID)
@@ -121,6 +124,28 @@ void UInventoryComponent::RemoveItem(FName itemID)
 
 void UInventoryComponent::ThrowItem(FName itemID, int amount)
 {
+	if (!itemID.IsEqual(TEXT("None"))) {
+		int actualRecudeAmount = amount;
+		if (actualRecudeAmount != 0) {
+			FInventoryItem reducedItem;
+			for (auto it = m_inventory.begin(); it != m_inventory.end(); ++it)
+			{
+				if ((*it).ItemID.IsEqual(itemID)) {
+					reducedItem = (*it);
+				}
+			}
+			TSubclassOf<AAPPickUP> spawnedClass = reducedItem.ItemPickUp;
+			if (spawnedClass) {
+				FActorSpawnParameters spawnPara;
+				spawnPara.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+				AAPPickUP* spawnActor = GetWorld()->SpawnActor<AAPPickUP>(spawnedClass, GetOwner()->GetActorLocation() + GetOwner()->GetActorForwardVector() * 30.f, FRotator::ZeroRotator, spawnPara);
+
+				spawnActor->AddImpulseToOverlapComp((GetOwner()->GetActorForwardVector() + GetOwner()->GetActorUpVector()).GetSafeNormal(), 500.f);
+				spawnActor->m_Amount = ReduceItemAmount(itemID, amount);
+			}
+
+		}
+	}
 
 }
 
@@ -128,6 +153,8 @@ void UInventoryComponent::ClearAllItems()
 {
 
 }
+
+
 
 void UInventoryComponent::TransformItemTo(UInventoryComponent* Other)
 {
@@ -138,4 +165,26 @@ void UInventoryComponent::TransformItemTo(UInventoryComponent* Other)
 void UInventoryComponent::LoadInventoryData()
 {
 	//... for future loading data
+}
+
+bool UInventoryComponent::HasItem(FName itemID)
+{
+	for (auto it = m_inventory.begin(); it != m_inventory.end(); ++it)
+	{
+		if ((*it).ItemID.IsEqual(itemID)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+bool UInventoryComponent::HasEnoughItem(FName itemID, int amount)
+{
+	for (auto it = m_inventory.begin(); it != m_inventory.end(); ++it)
+	{
+		if ((*it).ItemID.IsEqual(itemID) && (*it).Value >= amount) {
+			return true;
+		}
+	}
+	return false;
 }

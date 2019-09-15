@@ -74,7 +74,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 		bool AddItem(FName itemID, int amount);
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
-		void ReduceItemAmount(FName itemID, int amount);
+		int ReduceItemAmount(FName itemID, int amount);
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 		void RemoveItem(FName itemID);
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
@@ -83,6 +83,11 @@ public:
 		void TransformItemTo(UInventoryComponent* Other);
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 		void ClearAllItems();
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+		bool HasItem(FName itemID);
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+		bool HasEnoughItem(FName itemID, int amount);
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	FORCEINLINE TArray<FInventoryItem>& GetInventory() { return m_inventory;}

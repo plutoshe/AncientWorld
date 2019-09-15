@@ -201,7 +201,6 @@ void AAncientWorldPlayerController::SwitchToItem2()
 	AAncientWorldCharacter* myCharacter = Cast<AAncientWorldCharacter>(GetPawn());
 	if (myCharacter) {
 	//	myCharacter->SwitchToItem(1);
-
 	}
 }
 
