@@ -5,6 +5,7 @@
 #include "Components/SphereComponent.h"
 #include "AncientWorldCharacter.h"
 #include "Components/StaticMeshComponent.h"
+#include "Public/InventoryComponent.h"
 #include "TimerManager.h"
 
 
@@ -33,7 +34,7 @@ AAPPickUP::AAPPickUP()
 	m_timeAvoidPickUpAfterSpawn = 1.4f;
 	m_floatDistance = 5;
 	m_floatSpeed = 1;
-	m_ThresholdToDestroy = 1;
+	m_ThresholdToDestroy = 3;
 }
 
 void AAPPickUP::OnPawnEnter(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
@@ -125,9 +126,12 @@ void AAPPickUP::Tick(float DeltaTime)
 
 		if (dir.Size() < m_ThresholdToDestroy) {
 			m_bMovingToPlayer = false;
-			m_InsideCharacter->AddItemToInventory(m_ItemID);
-			m_InsideCharacter = nullptr;
-			Destroy();
+			UInventoryComponent* playerInven = m_InsideCharacter->GetInventoryComponent();
+			if (playerInven && playerInven->AddItem(m_ItemID, m_Amount)) {
+				m_InsideCharacter = nullptr;
+				Destroy();
+			}
+
 		}
 
 	}

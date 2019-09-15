@@ -19,6 +19,8 @@
 #include "Public/APPickUP.h"
 #include "Public/APInteractItemBase.h"
 
+#include "Public/InventoryComponent.h"
+
 AAncientWorldCharacter::AAncientWorldCharacter()
 {
 	// Set size for player capsule
@@ -70,6 +72,8 @@ AAncientWorldCharacter::AAncientWorldCharacter()
 
 	InteractPointComp = CreateDefaultSubobject<USceneComponent>(TEXT("InteractPointComp"));
 	InteractPointComp->SetupAttachment(RootComponent);
+
+	InventoryComp = CreateDefaultSubobject<UInventoryComponent>(TEXT("Inventory Component"));
 }
 
 void AAncientWorldCharacter::Tick(float DeltaSeconds)
@@ -95,7 +99,7 @@ void AAncientWorldCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	// Spawn tools when activates
-	SpawnUsefulTools();
+	//SpawnUsefulTools();
 }
 
 
@@ -191,6 +195,7 @@ void AAncientWorldCharacter::PerformCameraRotation(float DeltaSeconds)
 		}
 	}
 }
+/*
 #pragma region InventorySystem
 
 
@@ -366,3 +371,4 @@ void AAncientWorldCharacter::RemoveItemFromInventory(FName itemID, int _amount)
 }
 
 #pragma endregion
+*/

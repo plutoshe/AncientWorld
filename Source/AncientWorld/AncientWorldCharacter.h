@@ -4,45 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "Engine/DataTable.h"
+
 #include "AncientWorldCharacter.generated.h"
 
-USTRUCT(BlueprintType)
-struct FInventoryItem : public FTableRowBase {
 
-	GENERATED_BODY()
-
-public:
-	FInventoryItem() {
-		Name = FText::FromString("Item");
-		Action = FText::FromString("Use");
-		Describtion = FText::FromString("Add Description");
-		Value = 1;
-	}
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		FName ItemID;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		TSubclassOf<class AAPPickUP> ItemPickUp;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		FText Name;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		FText Action;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		int32  Value;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		class UTexture2D* Thumbnail;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		FText Describtion;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		bool bCanBeUsed;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		bool bCanStack;
-
-	bool operator==(const FInventoryItem& other) const {
-		return ItemID == other.ItemID;
-	}
-};
 
 UCLASS(Blueprintable)
 class AAncientWorldCharacter : public ACharacter
@@ -61,6 +26,9 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns CursorToWorld subobject **/
 	FORCEINLINE class UDecalComponent* GetCursorToWorld() { return CursorToWorld; }
+
+	FORCEINLINE class UInventoryComponent* GetInventoryComponent() { return InventoryComp; }
+
 
 	FORCEINLINE  FVector GetInteractPointLocation() { return InteractPointComp->GetComponentLocation(); }
 	FORCEINLINE  FRotator GetInteractPointRotation() { return InteractPointComp->GetComponentRotation(); }
@@ -86,40 +54,47 @@ protected:
 
 	void PerformCameraRotation(float DeltaSeconds);
 
-#pragma region Inventory
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components, meta = (AllowPrivateAccess = "true"))
+		class UInventoryComponent* InventoryComp;
+	/*
 
-protected:
-	UPROPERTY(VisibleAnywhere, Category = "Utils")
-		TArray<FInventoryItem> Inventory;
+	#pragma region Inventory
 
-	FInventoryItem* m_currentItem;
-	class AAPToolBase* m_usingTool;
+	protected:
 
-	void SetSelectingItem(FInventoryItem* _item);
-	void ClearItem();
 
-	TMap<FName, class AAPToolBase*> m_spawnedToolList;
-	// Spawn all useful tools and disable them.
-	void SpawnUsefulTools();
-public:
-	UFUNCTION(BlueprintCallable, Category = "Utils")
-		void AddItemToInventory(FName itemID);
-	FInventoryItem* GetCurrentItem() const { return m_currentItem; }
+		UPROPERTY(VisibleAnywhere, Category = "Utils")
+			TArray<FInventoryItem> Inventory;
 
-	void SwitchToItem(int slotID);
-	void InteractWithTool(class AAPInteractItemBase* interactBase);
+		FInventoryItem* m_currentItem;
+		class AAPToolBase* m_usingTool;
 
-	UFUNCTION(BlueprintCallable)
-	void RemoveItemFromInventory(FName itemID, int _amount);
-	UFUNCTION(BlueprintCallable)
-	void ThrowItem(const FInventoryItem& _spawnItem);
-	UFUNCTION(BlueprintImplementableEvent)
-		void OnAddNewItem(FInventoryItem _newItem);
-	UFUNCTION(BlueprintImplementableEvent)
-		void OnAddExistingItem(FName _name);
+		void SetSelectingItem(FInventoryItem* _item);
+		void ClearItem();
 
-#pragma endregion
+		TMap<FName, class AAPToolBase*> m_spawnedToolList;
+		// Spawn all useful tools and disable them.
+		void SpawnUsefulTools();
+	public:
+		UFUNCTION(BlueprintCallable, Category = "Utils")
+			void AddItemToInventory(FName itemID);
+		FInventoryItem* GetCurrentItem() const { return m_currentItem; }
 
+		void SwitchToItem(int slotID);
+		void InteractWithTool(class AAPInteractItemBase* interactBase);
+
+		UFUNCTION(BlueprintCallable)
+		void RemoveItemFromInventory(FName itemID, int _amount);
+		UFUNCTION(BlueprintCallable)
+		void ThrowItem(const FInventoryItem& _spawnItem);
+		UFUNCTION(BlueprintImplementableEvent)
+			void OnAddNewItem(FInventoryItem _newItem);
+		UFUNCTION(BlueprintImplementableEvent)
+			void OnAddExistingItem(FName _name);
+
+	#pragma endregion
+
+	*/
 
 private:
 	/** Top down camera */

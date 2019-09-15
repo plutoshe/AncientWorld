@@ -23,6 +23,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		FText m_Describtion;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		int m_Amount;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		bool m_bCanBeUsed;
 
 	FORCEINLINE class UStaticMeshComponent* GetStaticMesh() const { return SuperMesh; }

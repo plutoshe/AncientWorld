@@ -79,10 +79,11 @@ void AAPInteractFish::Interact()
 {
 	Super::Interact();
 	// it is a required tool
+/*
 	if (m_InteratingActor && m_requiredItemID.IsEqual(m_InteratingActor->GetCurrentItem()->ItemID)) {
 		GetDamage(10);
 
-	}
+	}*/
 }
 
 #pragma region GroundMovement
