@@ -33,7 +33,7 @@ public:
 	FORCEINLINE  FVector GetInteractPointLocation() { return InteractPointComp->GetComponentLocation(); }
 	FORCEINLINE  FRotator GetInteractPointRotation() { return InteractPointComp->GetComponentRotation(); }
 
-
+	void InteractWithTool(class AAPInteractItemBase* interactBase);
 protected:
 	virtual void BeginPlay() override;
 #pragma region PlayerInputFunctions
@@ -45,6 +45,8 @@ protected:
 	void Jump();
 	void Crouch();
 	void UnCrouch();
+	void OnMouseClick();
+
 #pragma endregion
 
 	bool m_bRotating;
@@ -54,8 +56,21 @@ protected:
 
 	void PerformCameraRotation(float DeltaSeconds);
 
+	void SetNewMoveDestination(const FHitResult& outHit);
+	// Navigation component
+	class UPathFollowingComponent* m_PFollowComp;
+	UFUNCTION(BlueprintCallable, Category = "AI|Navigation")
+		void MoveTo(AController* i_Controller, const FVector& GoalLocation);
+	UFUNCTION(BlueprintCallable, Category = "AI|Navigation")
+		void CancelMoveToLocation();
+
+	class UPathFollowingComponent* InitNavigationControl(AController& Controller);
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components, meta = (AllowPrivateAccess = "true"))
 		class UInventoryComponent* InventoryComp;
+
+	class AAPToolBase* m_usingTool;
+
 	/*
 
 	#pragma region Inventory
@@ -66,8 +81,7 @@ protected:
 		UPROPERTY(VisibleAnywhere, Category = "Utils")
 			TArray<FInventoryItem> Inventory;
 
-		FInventoryItem* m_currentItem;
-		class AAPToolBase* m_usingTool;
+
 
 		void SetSelectingItem(FInventoryItem* _item);
 		void ClearItem();

@@ -22,31 +22,8 @@ protected:
 	virtual void SetupInputComponent() override;
 	// End PlayerController interface
 
-	/** Navigate player to the current mouse cursor location. */
-	void OnMouseClick();
-
-	/** Navigate player to the given world location. */
-	void SetNewMoveDestination(const FHitResult& outHit);
-
-	// Navigation component
-	class UPathFollowingComponent* m_PFollowComp;
-
 public:
 
-	UFUNCTION(BlueprintCallable, Category = "AI|Navigation")
-	void MoveToLocation(AController* Controller, const FVector& GoalLocation);
-	UFUNCTION(BlueprintCallable, Category = "AI|Navigation")
-		void CancelMoveToLocation();
-
-
-	void SwitchToItem1();
-	void SwitchToItem2();
-	void SwitchToItem3();
-	void SwitchToItem4();
-	void SwitchToItem5();
-	void SwitchToItem6();
-	void SwitchToItem7();
-	class UPathFollowingComponent* InitNavigationControl(AController& Controller);
 };
 
 

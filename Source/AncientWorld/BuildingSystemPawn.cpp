@@ -74,6 +74,28 @@ void ABuildingSystemPawn::BeginPlay()
 
 }
 
+void ABuildingSystemPawn::ChangeToBuilding1()
+{
+	ChangeToBuilding(0);
+}
+
+void ABuildingSystemPawn::ChangeToBuilding2()
+{
+	ChangeToBuilding(1);
+
+}
+
+void ABuildingSystemPawn::ChangeToBuilding3()
+{
+	ChangeToBuilding(2);
+
+}
+
+void ABuildingSystemPawn::ChangeToBuilding4()
+{
+	ChangeToBuilding(3);
+}
+
 void ABuildingSystemPawn::RotateBuildingCamera(float axis)
 {
 	if (m_BuildingSystem != nullptr)
@@ -102,6 +124,12 @@ void ABuildingSystemPawn::SetupPlayerInputComponent(UInputComponent* PlayerInput
 	PlayerInputComponent->BindAction("BuildComplete", IE_Pressed, this, &ABuildingSystemPawn::BuildComplete);
 	PlayerInputComponent->BindAction("BuildCancellation", IE_Pressed, this, &ABuildingSystemPawn::BuildCancellation);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ABuildingSystemPawn::RotateBuildingCamera);
+
+	//Debug Input
+	PlayerInputComponent->BindAction("Item1", IE_Pressed, this, &ABuildingSystemPawn::ChangeToBuilding1);
+	PlayerInputComponent->BindAction("Item2", IE_Pressed, this, &ABuildingSystemPawn::ChangeToBuilding2);
+	PlayerInputComponent->BindAction("Item3", IE_Pressed, this, &ABuildingSystemPawn::ChangeToBuilding3);
+	PlayerInputComponent->BindAction("Item4", IE_Pressed, this, &ABuildingSystemPawn::ChangeToBuilding4);
 }
 
 void ABuildingSystemPawn::RoatetForward()
@@ -203,6 +231,13 @@ void ABuildingSystemPawn::UpdateCurrentBuildingBlock()
 		// update material(success/failure)
 		m_BuildingSystem->BuildingAvailability(*m_CurrentBuildingBlock);
 	}
+}
+
+void ABuildingSystemPawn::ChangeToBuilding(int idx)
+{
+	ChangeCurrentBuildingBlockEntityID(idx);
+	BuildCancellation();
+	BuildAction();
 }
 
 void ABuildingSystemPawn::UpdateCamera()

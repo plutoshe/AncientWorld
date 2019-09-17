@@ -34,6 +34,9 @@ public:
 	void UpdateCamera();
 	void UpdateCurrentBuildingBlock();
 
+	UFUNCTION(BlueprintCallable, Category = "BuilidingSystem")
+	void ChangeToBuilding(int idx);
+
 	ABuildingSystemPawn();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -55,6 +58,16 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+#pragma region BuildingDebug
+	void ChangeToBuilding1();
+	void ChangeToBuilding2();
+	void ChangeToBuilding3();
+	void ChangeToBuilding4();
+#pragma endregion
+
+
+
 
 
 private:

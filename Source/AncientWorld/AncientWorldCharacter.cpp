@@ -21,6 +21,10 @@
 
 #include "Public/InventoryComponent.h"
 
+#include "NavigationSystem.h"
+#include "Navigation/PathFollowingComponent.h"
+#include "AIController.h"
+
 AAncientWorldCharacter::AAncientWorldCharacter()
 {
 	// Set size for player capsule
@@ -115,6 +119,8 @@ void AAncientWorldCharacter::SetupPlayerInputComponent(class UInputComponent* Pl
 	PlayerInputComponent->BindAction("RotateCameraC", IE_Pressed, this, &AAncientWorldCharacter::RotateCamera90Clockwise);
 	PlayerInputComponent->BindAction("RotateCameraCC", IE_Pressed, this, &AAncientWorldCharacter::RotateCamera90CounterClockwise);
 	PlayerInputComponent->BindAction("ChangeToBuildingSystem", IE_Pressed, this, &AAncientWorldCharacter::ChangeToBuildingSystem);
+	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AAncientWorldCharacter::OnMouseClick);
+
 }
 
 void AAncientWorldCharacter::ChangeToBuildingSystem()
@@ -132,8 +138,7 @@ void AAncientWorldCharacter::ChangeToBuildingSystem()
 
 void AAncientWorldCharacter::MoveForward(float axis)
 {
-	AAncientWorldPlayerController* myController = Cast<AAncientWorldPlayerController>(GetController());
-	if ((axis > 0.1f || axis < -0.1f) && myController) myController->CancelMoveToLocation();
+	if ((axis > 0.1f || axis < -0.1f)) CancelMoveToLocation();
 	FVector dir = CameraComp->GetForwardVector();
 	dir.Z = 0;
 	AddMovementInput(dir.GetSafeNormal()*axis);
@@ -141,8 +146,7 @@ void AAncientWorldCharacter::MoveForward(float axis)
 
 void AAncientWorldCharacter::MoveRight(float axis)
 {
-	AAncientWorldPlayerController* myController = Cast<AAncientWorldPlayerController>(GetController());
-	if ((axis > 0.1f || axis < -0.1f) && myController) myController->CancelMoveToLocation();
+	if ((axis > 0.1f || axis < -0.1f)) CancelMoveToLocation();
 
 	AddMovementInput(CameraComp->GetRightVector() * axis);
 
@@ -318,25 +322,7 @@ void AAncientWorldCharacter::SwitchToItem(int slotID)
 	SetSelectingItem(&Inventory[slotID]);
 }
 
-void AAncientWorldCharacter::InteractWithTool(AAPInteractItemBase* interactBase)
-{
-	if (interactBase) {
-		if (interactBase->m_bRequireTool) {
-			if (m_usingTool != nullptr) {
-				m_usingTool->StartUse(interactBase);
-			}
-		}
-		else {
-			interactBase->Interact();
-		}
-	}
-	else {
-		if (m_usingTool != nullptr) {
-			m_usingTool->StartUse(nullptr);
-		}
-	}
-
-}
+v
 
 void AAncientWorldCharacter::RemoveItemFromInventory(FName itemID, int _amount)
 {
@@ -372,3 +358,162 @@ void AAncientWorldCharacter::RemoveItemFromInventory(FName itemID, int _amount)
 
 #pragma endregion
 */
+void AAncientWorldCharacter::InteractWithTool(AAPInteractItemBase* interactBase)
+{
+	if (interactBase) {
+		if (interactBase->m_bRequireTool) {
+			if (m_usingTool != nullptr) {
+				m_usingTool->StartUse(interactBase);
+			}
+		}
+		else {
+			interactBase->Interact();
+		}
+	}
+	else {
+		if (m_usingTool != nullptr) {
+			m_usingTool->StartUse(nullptr);
+		}
+	}
+
+}
+
+void AAncientWorldCharacter::OnMouseClick()
+{
+	// Trace to see what is under the mouse cursor
+	FHitResult Hit;
+	Cast<AAncientWorldPlayerController>(GetController())->GetHitResultUnderCursor(ECC_Visibility, false, Hit);
+
+	if (Hit.bBlockingHit)
+	{
+		SetNewMoveDestination(Hit);
+	}
+
+}
+
+
+void AAncientWorldCharacter::SetNewMoveDestination(const FHitResult& outHit)
+{
+	APawn* const MyPawn = this;
+	if (MyPawn)
+	{
+		AAPInteractItemBase* interactBase = Cast<AAPInteractItemBase>(outHit.Actor);
+
+		if (interactBase) {
+			float const Distance = FVector::Dist(outHit.ImpactPoint, MyPawn->GetActorLocation());
+
+			if ((Distance > 120.0f))
+			{
+				if (!interactBase->GetCanPawnInteract())
+					MoveTo(GetController(), outHit.ImpactPoint);
+				//UAIBlueprintHelperLibrary::SimpleMoveToLocation(this, outHit.ImpactPoint);
+			}
+
+			if (interactBase->GetCanPawnInteract()) {
+				InteractWithTool(interactBase);
+				FRotator newROt = (outHit.Actor->GetActorLocation() - GetActorLocation()).Rotation();
+				newROt.Pitch = 0;
+				newROt.Roll = 0;
+				SetActorRotation(newROt);
+			}
+		}
+		else {
+			// not interacting with interactItemBase
+			InteractWithTool(nullptr);
+		}
+
+
+	}
+}
+
+UPathFollowingComponent* AAncientWorldCharacter::InitNavigationControl(AController& Controller)
+{
+
+	AAIController* AsAIController = Cast<AAIController>(&Controller);
+	UPathFollowingComponent* PathFollowingComp = nullptr;
+
+	if (AsAIController)
+	{
+		PathFollowingComp = AsAIController->GetPathFollowingComponent();
+	}
+	else
+	{
+		PathFollowingComp = Controller.FindComponentByClass<UPathFollowingComponent>();
+		if (PathFollowingComp == nullptr)
+		{
+			PathFollowingComp = NewObject<UPathFollowingComponent>(&Controller);
+			PathFollowingComp->RegisterComponentWithWorld(Controller.GetWorld());
+			PathFollowingComp->Initialize();
+		}
+	}
+
+	return PathFollowingComp;
+
+}
+
+void AAncientWorldCharacter::MoveTo(AController* i_Controller, const FVector& GoalLocation)
+{
+	UNavigationSystemV1* NavSys = i_Controller ? FNavigationSystem::GetCurrent<UNavigationSystemV1>(i_Controller->GetWorld()) : nullptr;
+	if (NavSys == nullptr || i_Controller == nullptr || i_Controller->GetPawn() == nullptr)
+	{
+		UE_LOG(LogNavigation, Warning, TEXT("UNavigationSystemV1::SimpleMoveToActor called for NavSys:%s i_Controller:%s controlling Pawn:%s (if any of these is None then there's your problem"),
+			*GetNameSafe(NavSys), *GetNameSafe(i_Controller), i_Controller ? *GetNameSafe(i_Controller->GetPawn()) : TEXT("NULL"));
+		return;
+	}
+
+	m_PFollowComp = InitNavigationControl(*i_Controller);
+	UE_LOG(LogTemp, Log, TEXT("init: %d"), m_PFollowComp->bIsActive);
+
+	if (m_PFollowComp == nullptr)
+	{
+		return;
+	}
+
+	if (!m_PFollowComp->IsPathFollowingAllowed())
+	{
+		return;
+	}
+
+	const bool bAlreadyAtGoal = m_PFollowComp->HasReached(GoalLocation, EPathFollowingReachMode::OverlapAgent);
+
+	// script source, keep only one move request at time
+	if (m_PFollowComp->GetStatus() != EPathFollowingStatus::Idle)
+	{
+		m_PFollowComp->AbortMove(*NavSys, FPathFollowingResultFlags::ForcedScript | FPathFollowingResultFlags::NewRequest
+			, FAIRequestID::AnyRequest, bAlreadyAtGoal ? EPathFollowingVelocityMode::Reset : EPathFollowingVelocityMode::Keep);
+	}
+
+	// script source, keep only one move request at time
+	if (m_PFollowComp->GetStatus() != EPathFollowingStatus::Idle)
+	{
+		m_PFollowComp->AbortMove(*NavSys, FPathFollowingResultFlags::ForcedScript | FPathFollowingResultFlags::NewRequest);
+	}
+
+	if (bAlreadyAtGoal)
+	{
+		m_PFollowComp->RequestMoveWithImmediateFinish(EPathFollowingResult::Success);
+	}
+	else
+	{
+		const ANavigationData* NavData = NavSys->GetNavDataForProps(i_Controller->GetNavAgentPropertiesRef());
+		if (NavData)
+		{
+			FPathFindingQuery Query(i_Controller, *NavData, i_Controller->GetNavAgentLocation(), GoalLocation);
+			FPathFindingResult Result = NavSys->FindPathSync(Query);
+			if (Result.IsSuccessful())
+			{
+				m_PFollowComp->RequestMove(FAIMoveRequest(GoalLocation), Result.Path);
+			}
+			else if (m_PFollowComp->GetStatus() != EPathFollowingStatus::Idle)
+			{
+				m_PFollowComp->RequestMoveWithImmediateFinish(EPathFollowingResult::Invalid);
+			}
+		}
+	}
+}
+
+void AAncientWorldCharacter::CancelMoveToLocation()
+{
+	if (m_PFollowComp && m_PFollowComp->GetStatus() == EPathFollowingStatus::Moving)
+		m_PFollowComp->RequestMoveWithImmediateFinish(EPathFollowingResult::Aborted);
+}
