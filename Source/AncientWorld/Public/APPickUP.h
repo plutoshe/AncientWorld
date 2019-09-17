@@ -67,7 +67,7 @@ protected:
 
 private:
 
-	class AAncientWorldCharacter* m_InsideCharacter;
+	class AVenturePawn* m_InsideCharacter;
 	bool m_bMovingToPlayer;
 
 	float m_startTime;
@@ -80,7 +80,7 @@ private:
 
 
 	UFUNCTION(BlueprintCallable, Category = "Utils")
-		void StartMoveToPlayer(AAncientWorldCharacter* m_InsideCharacter);
+		void StartMoveToPlayer(AVenturePawn* m_InsideCharacter);
 
 	void RandomizeScale();
 	void SimulateFloat(float _deltaTime);

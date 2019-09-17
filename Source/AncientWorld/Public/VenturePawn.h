@@ -1,20 +1,21 @@
-// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
+// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Character.h"
-#include "AncientWorldCharacter.generated.h"
+#include "CharacterBase.h"
+#include "VenturePawn.generated.h"
 
-
-
-UCLASS(Blueprintable)
-class AAncientWorldCharacter : public ACharacter
+/**
+ * 
+ */
+UCLASS()
+class ANCIENTWORLD_API AVenturePawn : public ACharacterBase
 {
 	GENERATED_BODY()
-
+	
 public:
-	AAncientWorldCharacter();
+	AVenturePawn();
 
 	// Called every frame.
 	virtual void Tick(float DeltaSeconds) override;
@@ -32,18 +33,22 @@ public:
 	FORCEINLINE  FVector GetInteractPointLocation() { return InteractPointComp->GetComponentLocation(); }
 	FORCEINLINE  FRotator GetInteractPointRotation() { return InteractPointComp->GetComponentRotation(); }
 
-
 protected:
 	virtual void BeginPlay() override;
 #pragma region PlayerInputFunctions
 	void MoveForward(float axis);
+	void VertialAxis(float axis) override;
 	void MoveRight(float axis);
+	void HorizontalAxis(float axis) override;
 	void RotateCamera90Clockwise();
+	void OnQPressed() override;
 	void RotateCamera90CounterClockwise();
-	void ChangeToBuildingSystem();
+	void OnEPressed() override;
 	void Jump();
-	void Crouch();
-	void UnCrouch();
+	void OnSpacePressed() override;
+	UFUNCTION(BlueprintImplementableEvent, Category = Swim)
+	void BPSwimNormal(float axis);
+	void NormalAxis(float axis);
 #pragma endregion
 
 	bool m_bRotating;
@@ -55,45 +60,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components, meta = (AllowPrivateAccess = "true"))
 		class UInventoryComponent* InventoryComp;
-	/*
-
-	#pragma region Inventory
-
-	protected:
-
-
-		UPROPERTY(VisibleAnywhere, Category = "Utils")
-			TArray<FInventoryItem> Inventory;
-
-		FInventoryItem* m_currentItem;
-		class AAPToolBase* m_usingTool;
-
-		void SetSelectingItem(FInventoryItem* _item);
-		void ClearItem();
-
-		TMap<FName, class AAPToolBase*> m_spawnedToolList;
-		// Spawn all useful tools and disable them.
-		void SpawnUsefulTools();
-	public:
-		UFUNCTION(BlueprintCallable, Category = "Utils")
-			void AddItemToInventory(FName itemID);
-		FInventoryItem* GetCurrentItem() const { return m_currentItem; }
-
-		void SwitchToItem(int slotID);
-		void InteractWithTool(class AAPInteractItemBase* interactBase);
-
-		UFUNCTION(BlueprintCallable)
-		void RemoveItemFromInventory(FName itemID, int _amount);
-		UFUNCTION(BlueprintCallable)
-		void ThrowItem(const FInventoryItem& _spawnItem);
-		UFUNCTION(BlueprintImplementableEvent)
-			void OnAddNewItem(FInventoryItem _newItem);
-		UFUNCTION(BlueprintImplementableEvent)
-			void OnAddExistingItem(FName _name);
-
-	#pragma endregion
-
-	*/
 
 private:
 	/** Top down camera */
@@ -110,9 +76,4 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Component, meta = (AllowPrivateAccess = "true"))
 		class USceneComponent* InteractPointComp;
-
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-
 };
-

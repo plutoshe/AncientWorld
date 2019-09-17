@@ -3,7 +3,7 @@
 
 #include "Public/APPickUP.h"
 #include "Components/SphereComponent.h"
-#include "AncientWorldCharacter.h"
+#include "Public/VenturePawn.h"
 #include "Components/StaticMeshComponent.h"
 #include "Public/InventoryComponent.h"
 #include "TimerManager.h"
@@ -40,7 +40,7 @@ AAPPickUP::AAPPickUP()
 void AAPPickUP::OnPawnEnter(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
 	if (OtherActor != nullptr && OtherActor != this && OtherComp != nullptr) {
-		AAncientWorldCharacter* characterBase = Cast<AAncientWorldCharacter>(OtherActor);
+		AVenturePawn* characterBase = Cast<AVenturePawn>(OtherActor);
 		if (characterBase && m_bCanMoveToPlayer) {
 			// Move to character
 			m_InsideCharacter = characterBase;
@@ -75,7 +75,7 @@ void AAPPickUP::BeginPlay()
 	GetWorldTimerManager().SetTimer(m_SpawnHandle, this,&AAPPickUP::AllowToPickUp, m_timeAvoidPickUpAfterSpawn, false);
 }
 
-void AAPPickUP::StartMoveToPlayer(AAncientWorldCharacter* _InsideCharacter)
+void AAPPickUP::StartMoveToPlayer(AVenturePawn* _InsideCharacter)
 {
 	m_bMovingToPlayer = true;
 
